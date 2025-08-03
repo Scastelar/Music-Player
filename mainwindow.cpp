@@ -1,0 +1,253 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include "menu.h"
+
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QMessageBox>
+
+QString rutaImagen="";
+Cuentas manejo;
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+
+    M_Player = new QMediaPlayer();
+
+
+   // ui->pushButton_Play->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::initPopup(){
+    QDialog* popup = new QDialog();
+    popup->setWindowTitle("Tipo de Registro");
+    popup->setFixedSize(300, 150);
+    popup->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+
+    QVBoxLayout* layout = new QVBoxLayout(popup);
+
+    QLabel* mensaje = new QLabel("¿Que tipo de cuenta quieres registrar?", popup);
+    mensaje->setAlignment(Qt::AlignCenter);
+
+    QHBoxLayout* botonesLayout = new QHBoxLayout();
+    QPushButton* btnSi = new QPushButton("Estandar", popup);
+    QPushButton* btnNo = new QPushButton("Administrativo", popup);
+
+    botonesLayout->addWidget(btnSi);
+    botonesLayout->addWidget(btnNo);
+
+    layout->addWidget(mensaje);
+    layout->addLayout(botonesLayout);
+
+    popup->setStyleSheet(
+        "QDialog {"
+        "  background-color: #ffffff;"
+        "  border-radius: 15px;"
+        "}"
+        "QLabel {"
+        "  color: #333;"
+        "  font-size: 14px;"
+        "}"
+        "QPushButton {"
+        "  background-color: #333;"
+        "  color: white;"
+        "  border: none;"
+        "  padding: 6px 12px;"
+        "  border-radius: 6px;"
+        "}"
+        "QPushButton:hover {"
+        "  background-color: #233;"
+        "}"
+        );
+
+    connect(btnSi, &QPushButton::clicked, [popup]() {
+        // Acción para "Sí"
+        qDebug() << "Usuario eligió estandar";
+        popup->accept(); // o popup->close();
+    });
+
+    connect(btnNo, &QPushButton::clicked, [popup]() {
+        // Acción para "No"
+        qDebug() << "Usuario eligió administrativo";
+        popup->reject(); // o popup->close();
+    });
+
+    int respuesta = popup->exec();
+
+    if (respuesta == QDialog::Accepted) {
+        ui->stackedWidget->setCurrentIndex(1);
+    } else {
+        ui->stackedWidget->setCurrentIndex(2);
+    }
+}
+
+void MainWindow::resetearCampos(){
+
+    rutaImagen = "";
+    ui->lineEdit->clear();
+    ui->lineEdit_2->clear();
+    ui->lineEdit_3->clear();
+    ui->lineEdit_5->clear();
+    ui->lineEdit_6->clear();
+    ui->lineEdit_7->clear();
+    ui->dateEdit->clear();
+    ui->textEdit_2->clear();
+    ui->imgLbl->clear();
+    ui->imgLbl_2->clear();
+    ui->logLbl->clear();
+    ui->logLbl2->clear();
+}
+
+void MainWindow::on_regButton_clicked()
+{
+    initPopup();
+}
+
+void MainWindow::on_loginButton_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(3);
+}
+
+void MainWindow::on_loadButton1_clicked()
+{
+    rutaImagen = QFileDialog::getOpenFileName(this, "Seleccionar imagen de perfil", "", "Imagenes (*.jpg *.jpeg *.png)");
+
+    if (!rutaImagen.isEmpty()) {
+        QPixmap avatar(rutaImagen);
+
+        // Escalar al tamaño del QLabel
+        QPixmap avatarEscalado = avatar.scaled(
+            ui->imgLbl->size(),
+            //Qt::KeepAspectRatio,
+            Qt::IgnoreAspectRatio,
+            Qt::SmoothTransformation   // para que no se vea pixelado
+            );
+
+        ui->imgLbl->setPixmap(avatarEscalado);
+    }
+}
+
+
+void MainWindow::on_loadButton2_clicked()
+{
+    rutaImagen = QFileDialog::getOpenFileName(this, "Seleccionar imagen de perfil", "", "Imagenes (*.jpg *.jpeg *.png)");
+
+    if (!rutaImagen.isEmpty()) {
+        QPixmap avatar(rutaImagen);
+
+        // Escalar al tamaño del QLabel
+        QPixmap avatarEscalado = avatar.scaled(
+            ui->imgLbl_2->size(),
+            //Qt::KeepAspectRatio,
+            Qt::IgnoreAspectRatio,
+            Qt::SmoothTransformation   // para que no se vea pixelado
+            );
+
+        ui->imgLbl_2->setPixmap(avatarEscalado);
+    }
+}
+
+
+void MainWindow::on_backButton_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+    resetearCampos();
+}
+
+
+void MainWindow::on_backButton_2_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+    resetearCampos();
+}
+
+
+void MainWindow::on_crearButton1_clicked()
+{
+    //CUENTAS ESTANDAR
+    QString nombre = ui->lineEdit->text().toLower();
+    QString nombreReal = ui->lineEdit_2->text().toLower();
+    QString password = ui->lineEdit_3->text().toLower();
+    QDateTime date = ui->dateEdit->dateTime();
+    QString img = rutaImagen;
+
+    if (nombre.isEmpty() || password.isEmpty() || img.isEmpty() || date.isNull() ){
+        QMessageBox::critical(nullptr,"Error","Debes llenar los campos necesarios",QMessageBox::Ok);
+        return;
+    }
+
+    if (manejo.existeUsuario(nombre)){
+        QMessageBox::critical(nullptr,"Error","Este usuario ya existe, elige otro nombre",QMessageBox::Ok);
+    } else {
+        manejo.crearUsuarioNormal(nombre,nombreReal,password,date,img);
+        QMessageBox::information(nullptr,"Exito","Tu cuenta ha sido registrada!",QMessageBox::Ok);
+        resetearCampos();
+        ui->stackedWidget->setCurrentIndex(0);
+    }
+}
+
+void MainWindow::on_crearButton2_clicked()
+{
+    //CUENTAS ADMINISTRADOR
+    QString nombre = ui->lineEdit_5->text().toLower();
+    QString nombreReal = ui->lineEdit_6->text().toLower();
+    QString password = ui->lineEdit_7->text().toLower();
+    QString pais = ui->lineEdit_8->text().toLower();
+    QString genero =  ui->comboBox->currentText();
+    QString desc = ui->textEdit_2->toPlainText();
+    QString img = rutaImagen;
+
+    if (nombre.isEmpty() || password.isEmpty() || img.isEmpty()){
+        QMessageBox::critical(nullptr,"Error","Debes llenar los campos necesarios",QMessageBox::Ok);
+        return;
+    }
+
+    if (manejo.existeUsuario(nombre)){
+        QMessageBox::critical(nullptr,"Error","Este usuario ya existe, elige otro nombre",QMessageBox::Ok);
+    } else {
+        manejo.crearArtista(nombre,password,nombreReal,pais,genero,desc,img);
+        QMessageBox::information(nullptr,"Exito","Tu cuenta ha sido registrada!",QMessageBox::Ok);
+        resetearCampos();
+        ui->stackedWidget->setCurrentIndex(0);
+    }
+
+}
+
+void MainWindow::on_loginButton_2_clicked()
+{
+    QString user = ui->logLbl->text().toLower();
+    QString pass = ui->logLbl2->text().toLower();
+
+    if (user.isEmpty() || pass.isEmpty()){
+        QMessageBox::critical(nullptr,"Error","Debes llenar los campos necesarios",QMessageBox::Ok);
+        return;
+    } else {
+        Usuario* userActual = manejo.autenticar(user,pass);
+        manejo.setIdUsuarioActual(userActual->getId());
+        if (userActual==nullptr || !userActual->estaActivo()){
+            QMessageBox::critical(nullptr,"Error","Usuario invalido.",QMessageBox::Ok);
+            return;
+        } else {
+            QMessageBox::information(nullptr,"yay","Ingresaste!",QMessageBox::Ok);
+
+            menu* m = new menu(this,manejo);
+            this->close();
+            //this->setVisible(false);
+            m->show();
+        }
+    }
+}
+
+
+
+
+
+

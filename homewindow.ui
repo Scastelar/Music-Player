@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HomeWindow</class>
+ <widget class="QMainWindow" name="HomeWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>965</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(40, 40, 40);</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="horizontalWidget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>961</width>
+      <height>601</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item alignment="Qt::AlignmentFlag::AlignLeft">
+      <widget class="QFrame" name="verticalFrame">
+       <property name="styleSheet">
+        <string notr="true">color: rgb(255, 255, 255);</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item alignment="Qt::AlignmentFlag::AlignHCenter">
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>˗ˏˋ ♡ ˎˊ˗</string>
+          </property>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignmentFlag::AlignTop">
+         <widget class="QWidget" name="horizontalWidget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item alignment="Qt::AlignmentFlag::AlignLeft">
+            <widget class="QLabel" name="label_4">
+             <property name="styleSheet">
+              <string notr="true">color: rgb(255, 255, 255);
+font: 14pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="text">
+              <string>Tu Biblioteca ‧₊˚♪ 𝄞₊˚⊹</string>
+             </property>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignmentFlag::AlignLeft">
+            <widget class="QToolButton" name="toolButton_3">
+             <property name="styleSheet">
+              <string notr="true">font: 15pt &quot;Segoe UI&quot;;
+
+</string>
+             </property>
+             <property name="text">
+              <string>+</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignmentFlag::AlignTop">
+         <widget class="QWidget" name="horizontalWidget" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QToolButton" name="toolButton">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string>Playlists</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="toolButton_2">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string>Artistas</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="toolButton_4">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <property name="text">
+              <string>Albums</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item alignment="Qt::AlignmentFlag::AlignLeft">
+         <widget class="QListWidget" name="listWidget"/>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QWidget" name="verticalWidget_2" native="true">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item alignment="Qt::AlignmentFlag::AlignTop">
+         <widget class="QWidget" name="horizontalWidget_2" native="true">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop">
+            <widget class="QToolButton" name="toolButton_6">
+             <property name="styleSheet">
+              <string notr="true">font: 15pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="text">
+              <string>⌂</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEdit">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(255, 255, 255);</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="placeholderText">
+              <string>Buscar canciones, artistas...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="toolButton_5">
+             <property name="styleSheet">
+              <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="text">
+              <string>⋮</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QScrollArea" name="scrollArea">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LayoutDirection::LeftToRight</enum>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Shape::StyledPanel</enum>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>643</width>
+             <height>433</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <item>
+             <widget class="QWidget" name="verticalWidget" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_4"/>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="horizontalFrame">
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="styleSheet">
+              <string notr="true">background-color: rgb(162, 162, 162);</string>
+             </property>
+             <property name="text">
+              <string>Portada</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QWidget" name="verticalWidget" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="styleSheet">
+                 <string notr="true">color: rgb(255, 255, 255);
+font: 12pt &quot;Segoe UI&quot;;</string>
+                </property>
+                <property name="text">
+                 <string>titulo</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_3">
+                <property name="styleSheet">
+                 <string notr="true">font: 9pt &quot;Segoe UI&quot;;
+color: rgb(243, 243, 243)</string>
+                </property>
+                <property name="text">
+                 <string>artista</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignmentFlag::AlignVCenter">
+            <widget class="QWidget" name="verticalWidget" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QWidget" name="horizontalWidget" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_4">
+                 <item>
+                  <widget class="QToolButton" name="toolButton_9">
+                   <property name="styleSheet">
+                    <string notr="true">font: 13pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>🎲</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_8">
+                   <property name="styleSheet">
+                    <string notr="true">font: 15pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>◀</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_11">
+                   <property name="text">
+                    <string>▐▐</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_10">
+                   <property name="styleSheet">
+                    <string notr="true">font: 15pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>▶</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_7">
+                   <property name="styleSheet">
+                    <string notr="true">font: 14pt &quot;Segoe UI&quot;;</string>
+                   </property>
+                   <property name="text">
+                    <string>↺</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSlider" name="horizontalSlider_2">
+                <property name="styleSheet">
+                 <string notr="true">selection-background-color: rgb(255, 255, 255);</string>
+                </property>
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignmentFlag::AlignHCenter">
+            <widget class="QToolButton" name="toolButton_12">
+             <property name="styleSheet">
+              <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="text">
+              <string>❤︎</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_6">
+             <property name="styleSheet">
+              <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+             </property>
+             <property name="text">
+              <string>🔊</string>
+             </property>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignmentFlag::AlignLeft">
+            <widget class="QSlider" name="horizontalSlider">
+             <property name="styleSheet">
+              <string notr="true">selection-color: rgb(0, 0, 0);</string>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
