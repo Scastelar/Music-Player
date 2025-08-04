@@ -10,5 +10,6 @@
         <file>imagenes/perfilAdmin.png</file>
         <file>imagenes/editAdmin.png</file>
         <file>imagenes/editEstandar.png</file>
+        <file>imagenes/logoW.png</file>
     </qresource>
 </RCC>

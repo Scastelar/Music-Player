@@ -38,8 +38,23 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item alignment="Qt::AlignmentFlag::AlignHCenter">
          <widget class="QLabel" name="label_5">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>70</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>70</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
-           <string>˗ˏˋ ♡ ˎˊ˗</string>
+           <string/>
           </property>
          </widget>
         </item>
@@ -48,6 +63,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item alignment="Qt::AlignmentFlag::AlignLeft">
             <widget class="QLabel" name="label_4">
+             <property name="minimumSize">
+              <size>
+               <width>180</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">color: rgb(255, 255, 255);
 font: 14pt &quot;Segoe UI&quot;;</string>
@@ -151,11 +172,23 @@ font: 14pt &quot;Segoe UI&quot;;</string>
            </item>
            <item>
             <widget class="QToolButton" name="toolButton_5">
+             <property name="minimumSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
              </property>
              <property name="text">
-              <string>⋮</string>
+              <string/>
              </property>
             </widget>
            </item>
@@ -188,7 +221,7 @@ font: 14pt &quot;Segoe UI&quot;;</string>
              <x>0</x>
              <y>0</y>
              <width>643</width>
-             <height>433</height>
+             <height>384</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -206,11 +239,23 @@ font: 14pt &quot;Segoe UI&quot;;</string>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
             <widget class="QLabel" name="label">
+             <property name="minimumSize">
+              <size>
+               <width>90</width>
+               <height>90</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>90</width>
+               <height>90</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">background-color: rgb(162, 162, 162);</string>
              </property>
              <property name="text">
-              <string>Portada</string>
+              <string/>
              </property>
             </widget>
            </item>
@@ -219,23 +264,35 @@ font: 14pt &quot;Segoe UI&quot;;</string>
              <layout class="QVBoxLayout" name="verticalLayout_6">
               <item>
                <widget class="QLabel" name="label_2">
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>37</height>
+                 </size>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">color: rgb(255, 255, 255);
 font: 12pt &quot;Segoe UI&quot;;</string>
                 </property>
                 <property name="text">
-                 <string>titulo</string>
+                 <string/>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="label_3">
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>37</height>
+                 </size>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">font: 9pt &quot;Segoe UI&quot;;
 color: rgb(243, 243, 243)</string>
                 </property>
                 <property name="text">
-                 <string>artista</string>
+                 <string/>
                 </property>
                </widget>
               </item>

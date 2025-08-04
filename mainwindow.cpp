@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "homewindow.h"
 #include "ui_mainwindow.h"
 #include "menu.h"
 
@@ -98,7 +99,7 @@ void MainWindow::resetearCampos(){
     ui->lineEdit_5->clear();
     ui->lineEdit_6->clear();
     ui->lineEdit_7->clear();
-    ui->dateEdit->clear();
+    ui->lineEdit_8->clear();
     ui->textEdit_2->clear();
     ui->imgLbl->clear();
     ui->imgLbl_2->clear();
@@ -176,10 +177,10 @@ void MainWindow::on_crearButton1_clicked()
     QString nombre = ui->lineEdit->text().toLower();
     QString nombreReal = ui->lineEdit_2->text().toLower();
     QString password = ui->lineEdit_3->text().toLower();
-    QDateTime date = ui->dateEdit->dateTime();
+    QString email = ui->lineEdit_4->text().toLower();
     QString img = rutaImagen;
 
-    if (nombre.isEmpty() || password.isEmpty() || img.isEmpty() || date.isNull() ){
+    if (nombre.isEmpty() || password.isEmpty() || nombreReal.isEmpty() || img.isEmpty() || email.isEmpty() ){
         QMessageBox::critical(nullptr,"Error","Debes llenar los campos necesarios",QMessageBox::Ok);
         return;
     }
@@ -187,10 +188,14 @@ void MainWindow::on_crearButton1_clicked()
     if (manejo.existeUsuario(nombre)){
         QMessageBox::critical(nullptr,"Error","Este usuario ya existe, elige otro nombre",QMessageBox::Ok);
     } else {
-        manejo.crearUsuarioNormal(nombre,nombreReal,password,date,img);
+        manejo.crearUsuarioNormal(nombre,password,nombreReal,email,img);
         QMessageBox::information(nullptr,"Exito","Tu cuenta ha sido registrada!",QMessageBox::Ok);
         resetearCampos();
-        ui->stackedWidget->setCurrentIndex(0);
+        Usuario* userActual = manejo.autenticar(nombre,password);
+        manejo.setIdUsuarioActual(userActual->getId());
+        HomeWindow* h = new HomeWindow(this,manejo);
+        this->close();
+        h->show();
     }
 }
 
@@ -213,10 +218,14 @@ void MainWindow::on_crearButton2_clicked()
     if (manejo.existeUsuario(nombre)){
         QMessageBox::critical(nullptr,"Error","Este usuario ya existe, elige otro nombre",QMessageBox::Ok);
     } else {
-        manejo.crearArtista(nombre,password,nombreReal,pais,genero,desc,img);
+        manejo.crearArtista(nombre,password,pais,genero,nombreReal,desc,img);
         QMessageBox::information(nullptr,"Exito","Tu cuenta ha sido registrada!",QMessageBox::Ok);
         resetearCampos();
-        ui->stackedWidget->setCurrentIndex(0);
+        Usuario* userActual = manejo.autenticar(nombre,password);
+        manejo.setIdUsuarioActual(userActual->getId());
+        HomeWindow* h = new HomeWindow(this,manejo);
+        this->close();
+        h->show();
     }
 
 }
@@ -238,10 +247,9 @@ void MainWindow::on_loginButton_2_clicked()
         } else {
             QMessageBox::information(nullptr,"yay","Ingresaste!",QMessageBox::Ok);
 
-            menu* m = new menu(this,manejo);
+            HomeWindow* h = new HomeWindow(this,manejo);
             this->close();
-            //this->setVisible(false);
-            m->show();
+            h->show();
         }
     }
 }

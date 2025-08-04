@@ -20,9 +20,9 @@ public:
 
     // Metodos virtuales puros (clase abstracta)
     virtual QString getTipo() const = 0;
-    virtual QString getUsername() const = 0;
 
     // Getters
+    QString getUsername() const { return username; }
     int getId() const { return id; }  // Cambiado a int
     QString getNombreUsuario() const { return username; }
     QString getNombreReal() const { return nombreReal; }

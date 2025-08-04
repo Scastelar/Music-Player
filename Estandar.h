@@ -2,25 +2,62 @@
 #define ESTANDAR_H
 
 #include "usuario.h"
+#include <QStringList>
+
+// Estructura para favoritos
+struct Favorito {
+    int idCancion;
+    QDateTime fechaMarcado;
+};
+
+// Estructura para entradas de biblioteca
+struct EntradaBiblioteca {
+    int idCancion;
+    QDateTime fechaAgregado;
+};
+
+// Estructura para listas de reproducción
+struct ListaReproduccion {
+    int idLista;
+    QString nombre;
+    QDateTime fechaCreacion;
+    bool activa;
+    QList<int> canciones;
+};
 
 class Estandar : public Usuario {
 private:
     QString email;
+    int ultimoIdPlaylist;
+
+    void cargarUltimoIdPlaylist();
+    void guardarUltimoIdPlaylist();
+
 public:
-    Estandar(const QString& username, const QString& password, const QString& nombreReal,
-             const QString& email, const QString& rutaImagen = "");
+    Estandar(const QString& username, const QString& password,
+             const QString& nombreReal, const QString& email);
 
-    // Implementación de metodos virtuales
+    //Metodos virtuales
     QString getTipo() const override { return "ESTANDAR"; }
-    QString getUsername() const override { return username; }
 
-    //Metodos propios
+    // Métodos para biblioteca
+    void agregarCancionABiblioteca(int cancionId);
 
-    QString getEmail() const { return email; }  // Nuevo getter
+    // Métodos para listas de reproducción
+    int generarIdPlaylistUnico();
+    void crearNuevaListaReproduccion(const QString& nombreLista);
+    void agregarCancionALista(int idLista, int cancionId);
 
-    void setEmail(const QString& email) { this->email = email; }
+    // Métodos para favoritos
+    void agregarCancionFavorita(int cancionId);
+    bool eliminarCancionFavorita(int cancionId);
+    QList<Favorito> obtenerCancionesFavoritas() const;
+    bool esCancionFavorita(int cancionId) const;
 
-    //Metodos de serializacion
+    // Getters
+    QString getEmail() const { return email; }
+
+    // Serialización
     void escribirEnStream(QDataStream& stream) const override;
     void leerDesdeStream(QDataStream& stream) override;
 };

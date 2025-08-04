@@ -1,3 +1,3 @@
 #include "biblioteca.h"
 
-Biblioteca::Biblioteca() {}
+Biblioteca::Biblioteca(int userId) {}
