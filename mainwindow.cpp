@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "homewindow.h"
+#include "homewindow_copy.h"
 #include "ui_mainwindow.h"
 
 #include <QVBoxLayout>
@@ -246,9 +247,15 @@ void MainWindow::on_loginButton_2_clicked()
         } else {
             QMessageBox::information(nullptr,"yay","Ingresaste!",QMessageBox::Ok);
 
+            if (userActual->getTipo()=="ADMIN"){
+                HomeWindow_Copy* h = new HomeWindow_Copy(this,manejo);
+                this->close();
+                h->show();
+            }else {
             HomeWindow* h = new HomeWindow(this,manejo);
             this->close();
             h->show();
+            }
         }
     }
 }

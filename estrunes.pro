@@ -16,6 +16,7 @@ SOURCES += \
     biblioteca.cpp \
     cuentas.cpp \
     homewindow.cpp \
+    homewindow_copy.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -26,10 +27,12 @@ HEADERS += \
     biblioteca.h \
     cuentas.h \
     homewindow.h \
+    homewindow_copy.h \
     mainwindow.h
 
 FORMS += \
     homewindow.ui \
+    homewindow_copy.ui \
     mainwindow.ui
 
 # Default rules for deployment.

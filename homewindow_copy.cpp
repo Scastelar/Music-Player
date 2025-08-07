@@ -1,15 +1,16 @@
-#include "homewindow.h"
+#include "HomeWindow_Copy.h"
 #include "mainwindow.h"
-#include "ui_homewindow.h"
+#include "ui_HomeWindow_Copy.h"
 
 #include <QFile>
 #include <QMenu>
 #include <QFontDatabase>
 
 
-HomeWindow::HomeWindow(QWidget *parent,Cuentas& manejo)
+
+HomeWindow_Copy::HomeWindow_Copy(QWidget *parent,Cuentas& manejo)
     : QMainWindow(parent)
-    , ui(new Ui::HomeWindow)
+    , ui(new Ui::HomeWindow_Copy)
     ,  manejo(&manejo)
 {
     ui->setupUi(this);
@@ -108,6 +109,7 @@ HomeWindow::HomeWindow(QWidget *parent,Cuentas& manejo)
     setIcono(ui->toolButton_addSong,0xe7e5,20);
 
     //Rating promedio
+    /*
     int rating = 5;
     QString stars = "";
     for (int i = 0; i < rating; i++){
@@ -116,43 +118,43 @@ HomeWindow::HomeWindow(QWidget *parent,Cuentas& manejo)
     ui->label_ratingProm->setText(stars); //Star unicode
     ui->label_ratingProm->setFont(QFont(MaterialIcons, 25));
     ui->label_ratingProm->setStyleSheet("color: yellow; border: none;");
-
+    */
 
 
 }
 
-HomeWindow::~HomeWindow()
+HomeWindow_Copy::~HomeWindow_Copy()
 {
     delete ui;
 }
 
 
-void HomeWindow::setIcono(QToolButton* boton, ushort unicode, int size){
+void HomeWindow_Copy::setIcono(QToolButton* boton, ushort unicode, int size){
     boton->setText(QChar(unicode));
     boton->setFont(QFont(MaterialIcons, size)); // Tamaño 20
     boton->setStyleSheet("color: white; border: none;");
 }
 
-void HomeWindow::on_toolButton_Playlist_clicked()
+void HomeWindow_Copy::on_toolButton_Playlist_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
 }
 
 
-void HomeWindow::on_toolButton_home_clicked()
+void HomeWindow_Copy::on_toolButton_home_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
 
 }
 
 
-void HomeWindow::on_lineEdit_editingFinished()
+void HomeWindow_Copy::on_lineEdit_editingFinished()
 {
     ui->stackedWidget->setCurrentIndex(4);
 
 }
 
-void HomeWindow::conectarMenu(){
+void HomeWindow_Copy::conectarMenu(){
     connect(editarDatos, &QAction::triggered, this, [=]() {
         qDebug() << "Editar datos";
         ui->stackedWidget->setCurrentIndex(2);

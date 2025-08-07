@@ -1,21 +1,21 @@
-#ifndef HOMEWINDOW_H
-#define HOMEWINDOW_H
+#ifndef HOMEWINDOW_COPY_H
+#define HOMEWINDOW_COPY_H
 
 #include <QMainWindow>
 #include <QToolButton>
 #include "cuentas.h"
 
 namespace Ui {
-class HomeWindow;
+class HomeWindow_Copy;
 }
 
-class HomeWindow : public QMainWindow
+class HomeWindow_Copy : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit HomeWindow(QWidget *parent, Cuentas& manejo);
-    ~HomeWindow();
+    explicit HomeWindow_Copy(QWidget *parent, Cuentas& manejo);
+    ~HomeWindow_Copy();
 
     void setIcono(QToolButton* boton, ushort unicode, int size);
     void conectarMenu();
@@ -28,8 +28,9 @@ private slots:
     void on_lineEdit_editingFinished();
 
 private:
-    Ui::HomeWindow *ui;
+    Ui::HomeWindow_Copy *ui;
     Cuentas* manejo;
+
     QString Montserrat = "Montserrat";
     QString MaterialIcons = "Material-Icons";
 
@@ -42,4 +43,4 @@ private:
     QAction* cerrarSesion;
 };
 
-#endif // HOMEWINDOW_H
+#endif // HOMEWINDOW_COPY_H
