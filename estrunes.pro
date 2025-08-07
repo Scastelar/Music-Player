@@ -22,7 +22,6 @@ SOURCES += \
 HEADERS += \
     Administrador.h \
     Estandar.h \
-    TablaHash.h \
     Usuario.h \
     biblioteca.h \
     cuentas.h \

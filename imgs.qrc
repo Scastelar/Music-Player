@@ -11,5 +11,9 @@
         <file>imagenes/editAdmin.png</file>
         <file>imagenes/editEstandar.png</file>
         <file>imagenes/logoW.png</file>
+        <file>imagenes/album.png</file>
+        <file>Montserrat-Bold.ttf</file>
+        <file>Montserrat-Regular.ttf</file>
+        <file>MaterialIcons-Regular.ttf</file>
     </qresource>
 </RCC>

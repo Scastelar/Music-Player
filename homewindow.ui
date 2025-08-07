@@ -71,15 +71,15 @@
              </property>
              <property name="styleSheet">
               <string notr="true">color: rgb(255, 255, 255);
-font: 14pt &quot;Segoe UI&quot;;</string>
+</string>
              </property>
              <property name="text">
-              <string>Tu Biblioteca ‧₊˚♪ 𝄞₊˚⊹</string>
+              <string>Tu Biblioteca ‧₊˚♪ </string>
              </property>
             </widget>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignLeft">
-            <widget class="QToolButton" name="toolButton_3">
+            <widget class="QToolButton" name="toolButton_Playlist">
              <property name="styleSheet">
               <string notr="true">font: 15pt &quot;Segoe UI&quot;;
 
@@ -147,8 +147,8 @@ font: 14pt &quot;Segoe UI&quot;;</string>
            <string notr="true"/>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop">
-            <widget class="QToolButton" name="toolButton_6">
+           <item alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop">
+            <widget class="QToolButton" name="toolButton_home">
              <property name="styleSheet">
               <string notr="true">font: 15pt &quot;Segoe UI&quot;;</string>
              </property>
@@ -171,7 +171,7 @@ font: 14pt &quot;Segoe UI&quot;;</string>
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="toolButton_5">
+            <widget class="QToolButton" name="btnPerfil">
              <property name="minimumSize">
               <size>
                <width>30</width>
@@ -195,42 +195,84 @@ font: 14pt &quot;Segoe UI&quot;;</string>
           </layout>
          </widget>
         </item>
-        <item>
-         <widget class="QScrollArea" name="scrollArea">
-          <property name="enabled">
-           <bool>true</bool>
+        <item alignment="Qt::AlignmentFlag::AlignHCenter">
+         <widget class="QStackedWidget" name="stackedWidget">
+          <property name="minimumSize">
+           <size>
+            <width>640</width>
+            <height>386</height>
+           </size>
           </property>
-          <property name="layoutDirection">
-           <enum>Qt::LayoutDirection::LeftToRight</enum>
+          <property name="maximumSize">
+           <size>
+            <width>640</width>
+            <height>386</height>
+           </size>
           </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
+          <property name="currentIndex">
+           <number>1</number>
           </property>
-          <property name="frameShape">
-           <enum>QFrame::Shape::StyledPanel</enum>
-          </property>
-          <property name="sizeAdjustPolicy">
-           <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
-          </property>
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>643</width>
-             <height>384</height>
-            </rect>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <item>
-             <widget class="QWidget" name="verticalWidget" native="true">
-              <layout class="QVBoxLayout" name="verticalLayout_4"/>
-             </widget>
-            </item>
-           </layout>
+          <widget class="QWidget" name="page">
+           <widget class="QScrollArea" name="scrollArea">
+            <property name="geometry">
+             <rect>
+              <x>9</x>
+              <y>49</y>
+              <width>621</width>
+              <height>321</height>
+             </rect>
+            </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>619</width>
+               <height>319</height>
+              </rect>
+             </property>
+            </widget>
+           </widget>
+           <widget class="QLabel" name="label_7">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>10</y>
+              <width>231</width>
+              <height>21</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>Bienvenido</string>
+            </property>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="page_2">
+           <widget class="QLabel" name="label_8">
+            <property name="geometry">
+             <rect>
+              <x>50</x>
+              <y>40</y>
+              <width>241</width>
+              <height>201</height>
+             </rect>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="scaledContents">
+             <bool>true</bool>
+            </property>
+           </widget>
           </widget>
          </widget>
         </item>
@@ -306,7 +348,7 @@ color: rgb(243, 243, 243)</string>
                <widget class="QWidget" name="horizontalWidget" native="true">
                 <layout class="QHBoxLayout" name="horizontalLayout_4">
                  <item>
-                  <widget class="QToolButton" name="toolButton_9">
+                  <widget class="QToolButton" name="toolButton_random">
                    <property name="styleSheet">
                     <string notr="true">font: 13pt &quot;Segoe UI&quot;;</string>
                    </property>
@@ -316,7 +358,7 @@ color: rgb(243, 243, 243)</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QToolButton" name="toolButton_8">
+                  <widget class="QToolButton" name="toolButton_prev">
                    <property name="styleSheet">
                     <string notr="true">font: 15pt &quot;Segoe UI&quot;;</string>
                    </property>
@@ -326,14 +368,14 @@ color: rgb(243, 243, 243)</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QToolButton" name="toolButton_11">
+                  <widget class="QToolButton" name="toolButton_play">
                    <property name="text">
                     <string>▐▐</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QToolButton" name="toolButton_10">
+                  <widget class="QToolButton" name="toolButton_next">
                    <property name="styleSheet">
                     <string notr="true">font: 15pt &quot;Segoe UI&quot;;</string>
                    </property>
@@ -343,7 +385,7 @@ color: rgb(243, 243, 243)</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QToolButton" name="toolButton_7">
+                  <widget class="QToolButton" name="toolButton_loop">
                    <property name="styleSheet">
                     <string notr="true">font: 14pt &quot;Segoe UI&quot;;</string>
                    </property>
@@ -369,7 +411,7 @@ color: rgb(243, 243, 243)</string>
             </widget>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignHCenter">
-            <widget class="QToolButton" name="toolButton_12">
+            <widget class="QToolButton" name="toolButton_fav">
              <property name="styleSheet">
               <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
              </property>

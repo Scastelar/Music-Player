@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "homewindow.h"
 #include "ui_mainwindow.h"
-#include "menu.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
