@@ -5,8 +5,11 @@
 #include "Estandar.h"
 #include "Administrador.h"
 #include <QFile>
+#include <QDir>
 #include <unordered_map>
 #include <QDataStream>
+#include <QCryptographicHash>
+#include <limits>
 
 struct IndiceUsuario {
     QString nombreUsuario;
@@ -22,22 +25,54 @@ QDataStream& operator>>(QDataStream& in, IndiceUsuario& indice);
 QDataStream& operator<<(QDataStream& out, const std::unordered_map<QString, IndiceUsuario>& map);
 QDataStream& operator>>(QDataStream& in, std::unordered_map<QString, IndiceUsuario>& map);
 
+
+// Hash personalizado para QString
+struct QStringHash {
+    size_t operator()(const QString& str) const {
+        const double A = 0.6180339887;
+        size_t hash = 0;
+        for (QChar ch : str) {
+            hash = hash * 31 + ch.unicode();
+        }
+        double val = hash * A;
+        val -= static_cast<int>(val);
+        return static_cast<size_t>(val * std::numeric_limits<size_t>::max());
+    }
+};
+
+// Hash personalizado para int
+struct IntHash {
+    size_t operator()(int key) const {
+        const double A = 0.6180339887;
+        double val = key * A;
+        val -= static_cast<int>(val);
+        return static_cast<size_t>(val * std::numeric_limits<size_t>::max());
+    }
+};
+
 class Cuentas {
 private:
-    mutable std::unordered_map<QString, Usuario*> tablaUsuarios;
-    std::unordered_map<int, Usuario*> tablaUsuariosPorId;  // Cambiado a int como clave
+    mutable std::unordered_map<QString, Usuario*, QStringHash> tablaUsuarios;
+    std::unordered_map<int, Usuario*, IntHash> tablaUsuariosPorId;
     std::unordered_map<QString, IndiceUsuario> indices;
     int idUsuarioActual;
-    int ultimoId = 0;  // Para generar IDs únicos
+    int ultimoId = 0;
 
-    const QString ARCHIVO_USUARIOS = "usuarios.dat";
-    const QString ARCHIVO_ARTISTAS = "artistas.dat";
+    const QString CARPETA_USUARIOS = "usuarios/";
     const QString ARCHIVO_INDICES = "indices.dat";
-    const QString ARCHIVO_CALIFICACIONES = "calificaciones.dat";
-    const QString ARCHIVO_REPRODUCCIONES = "reproducciones.dat";
+
+    QString obtenerRutaArchivoUsuario(int userId, const QString& tipo) const {
+        return CARPETA_USUARIOS + QString::number(userId) + "/" + tipo + "_" + QString::number(userId) + ".dat";
+    }
 
     void crearArchivosUsuarioEstandar(int userId);
+
+
     void crearArchivosAdministrador(int userId);
+
+
+
+
     void inicializarArchivos();
     void cargarUsuariosDesdeArchivo();
     void guardarUsuarioEnArchivo(Usuario* usuario);

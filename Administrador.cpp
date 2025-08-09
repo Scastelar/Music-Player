@@ -18,3 +18,18 @@ void Administrador::leerDesdeStream(QDataStream& stream) {
     Usuario::leerDesdeStream(stream);
     stream >> pais >> genero >> descripcion;
 }
+
+void Administrador::agregarCancionCatalogo(const QString& titulo, const QString& genero,
+                                           const QString& categoria, const QString& rutaPortada,
+                                           const QString& rutaAudio) {
+    Cancion nuevaCancion(titulo, genero, categoria, rutaPortada, rutaAudio, this->getNombreUsuario());
+    nuevaCancion.guardarEnArchivo("canciones.dat");
+}
+
+QList<Cancion> Administrador::obtenerCancionesCatalogo() const {
+    return Cancion::cargarDesdeArchivo("canciones.dat");
+}
+
+bool Administrador::eliminarCancionCatalogo(int idCancion) {
+    return Cancion::eliminarCancion(idCancion, "canciones.dat");
+}

@@ -282,22 +282,37 @@
           </property>
           <property name="maximumSize">
            <size>
-            <width>640</width>
+            <width>657</width>
             <height>386</height>
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="page">
            <widget class="QScrollArea" name="scrollArea">
             <property name="geometry">
              <rect>
-              <x>9</x>
-              <y>49</y>
+              <x>20</x>
+              <y>50</y>
               <width>621</width>
               <height>321</height>
              </rect>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
             </property>
             <property name="widgetResizable">
              <bool>true</bool>
@@ -307,186 +322,194 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>619</width>
+               <width>620</width>
                <height>319</height>
               </rect>
              </property>
-             <widget class="QLabel" name="label_12">
-              <property name="geometry">
-               <rect>
-                <x>200</x>
-                <y>10</y>
-                <width>231</width>
-                <height>21</height>
-               </rect>
-              </property>
-              <property name="text">
-               <string>Catalogo</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
-             <widget class="QWidget" name="generosWidget" native="true">
-              <property name="geometry">
-               <rect>
-                <x>50</x>
-                <y>60</y>
-                <width>541</width>
-                <height>34</height>
-               </rect>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>34</height>
-               </size>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_7">
-               <item>
-                <widget class="QToolButton" name="toolButton_6">
-                 <property name="minimumSize">
-                  <size>
-                   <width>57</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 255, 255);
+             <property name="minimumSize">
+              <size>
+               <width>620</width>
+               <height>0</height>
+              </size>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_12">
+                <property name="maximumSize">
+                 <size>
+                  <width>600</width>
+                  <height>33</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Catalogo</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QWidget" name="generosWidget" native="true">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>34</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>600</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <widget class="QToolButton" name="toolButton_6">
+                   <property name="minimumSize">
+                    <size>
+                     <width>57</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">color: rgb(255, 255, 255);
 background-color: rgb(186, 186, 186);</string>
-                 </property>
-                 <property name="text">
-                  <string>Pop</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QToolButton" name="toolButton_3">
-                 <property name="minimumSize">
-                  <size>
-                   <width>57</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 255, 255);
+                   </property>
+                   <property name="text">
+                    <string>Pop</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_3">
+                   <property name="minimumSize">
+                    <size>
+                     <width>57</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">color: rgb(255, 255, 255);
 background-color: rgb(186, 186, 186);</string>
-                 </property>
-                 <property name="text">
-                  <string>Clasica</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QToolButton" name="toolButton_5">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 255, 255);
+                   </property>
+                   <property name="text">
+                    <string>Clasica</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_5">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">color: rgb(255, 255, 255);
 background-color: rgb(186, 186, 186);</string>
-                 </property>
-                 <property name="text">
-                  <string>Electronica</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QToolButton" name="toolButton_9">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 255, 255);
+                   </property>
+                   <property name="text">
+                    <string>Electronica</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_9">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">color: rgb(255, 255, 255);
 background-color: rgb(186, 186, 186);</string>
-                 </property>
-                 <property name="text">
-                  <string>Regueton</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QToolButton" name="toolButton_7">
-                 <property name="minimumSize">
-                  <size>
-                   <width>57</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 255, 255);
+                   </property>
+                   <property name="text">
+                    <string>Regueton</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_7">
+                   <property name="minimumSize">
+                    <size>
+                     <width>57</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">color: rgb(255, 255, 255);
 background-color: rgb(186, 186, 186);</string>
-                 </property>
-                 <property name="text">
-                  <string>Rock</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QToolButton" name="toolButton_8">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 255, 255);
+                   </property>
+                   <property name="text">
+                    <string>Rock</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_8">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">color: rgb(255, 255, 255);
 background-color: rgb(186, 186, 186);</string>
-                 </property>
-                 <property name="text">
-                  <string>Cristianos</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QToolButton" name="toolButton_10">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>25</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">color: rgb(255, 255, 255);
+                   </property>
+                   <property name="text">
+                    <string>Cristianos</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QToolButton" name="toolButton_10">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">color: rgb(255, 255, 255);
 background-color: rgb(186, 186, 186);</string>
-                 </property>
-                 <property name="text">
-                  <string>Corridos</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-             <widget class="QWidget" name="gridWidget" native="true">
-              <property name="geometry">
-               <rect>
-                <x>40</x>
-                <y>120</y>
-                <width>560</width>
-                <height>181</height>
-               </rect>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>560</width>
-                <height>180</height>
-               </size>
-              </property>
-              <layout class="QGridLayout" name="gridLayout"/>
-             </widget>
+                   </property>
+                   <property name="text">
+                    <string>Corridos</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QWidget" name="gridWidget" native="true">
+                <property name="minimumSize">
+                 <size>
+                  <width>600</width>
+                  <height>180</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>600</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <layout class="QGridLayout" name="gridLayout"/>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </widget>
            <widget class="QLabel" name="label_7">
             <property name="geometry">
              <rect>
-              <x>50</x>
+              <x>30</x>
               <y>20</y>
               <width>231</width>
               <height>21</height>
@@ -1021,7 +1044,7 @@ background-color: rgb(255, 42, 42);</string>
                        </size>
                       </property>
                       <property name="text">
-                       <string>1. From The Start</string>
+                       <string>1. Titulo</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1054,7 +1077,7 @@ background-color: rgb(255, 42, 42);</string>
                        </size>
                       </property>
                       <property name="text">
-                       <string>2. Espresso</string>
+                       <string>2. Titulo</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1087,7 +1110,7 @@ background-color: rgb(255, 42, 42);</string>
                        </size>
                       </property>
                       <property name="text">
-                       <string>3. Lovefool</string>
+                       <string>3. Titulo</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1148,7 +1171,7 @@ background-color: rgb(255, 42, 42);</string>
                        </size>
                       </property>
                       <property name="text">
-                       <string>From The Start</string>
+                       <string>Titulo</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1194,7 +1217,7 @@ background-color: rgb(255, 42, 42);</string>
                        </size>
                       </property>
                       <property name="text">
-                       <string>Espresso</string>
+                       <string>Titulo</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1240,7 +1263,7 @@ background-color: rgb(255, 42, 42);</string>
                        </size>
                       </property>
                       <property name="text">
-                       <string> Lovefool</string>
+                       <string>Titulo</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -1283,7 +1306,7 @@ background-color: rgb(255, 42, 42);</string>
          <widget class="QFrame" name="horizontalFrame">
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="labelP">
              <property name="minimumSize">
               <size>
                <width>90</width>
@@ -1308,7 +1331,7 @@ background-color: rgb(255, 42, 42);</string>
             <widget class="QWidget" name="verticalWidget" native="true">
              <layout class="QVBoxLayout" name="verticalLayout_6">
               <item>
-               <widget class="QLabel" name="label_2">
+               <widget class="QLabel" name="labelSong">
                 <property name="minimumSize">
                  <size>
                   <width>40</width>
@@ -1325,7 +1348,7 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_3">
+               <widget class="QLabel" name="labelArtist">
                 <property name="minimumSize">
                  <size>
                   <width>40</width>
@@ -1342,6 +1365,19 @@ color: rgb(243, 243, 243)</string>
                </widget>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_Value_1">
+             <property name="minimumSize">
+              <size>
+               <width>47</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
             </widget>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignVCenter">
@@ -1401,7 +1437,7 @@ color: rgb(243, 243, 243)</string>
                </widget>
               </item>
               <item>
-               <widget class="QSlider" name="horizontalSlider_2">
+               <widget class="QSlider" name="horizontalSlider_Audio_File_Duration">
                 <property name="styleSheet">
                  <string notr="true">selection-background-color: rgb(255, 255, 255);</string>
                 </property>
@@ -1411,6 +1447,19 @@ color: rgb(243, 243, 243)</string>
                </widget>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_Value_2">
+             <property name="minimumSize">
+              <size>
+               <width>52</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
             </widget>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignHCenter">
@@ -1424,17 +1473,20 @@ color: rgb(243, 243, 243)</string>
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_6">
-             <property name="styleSheet">
-              <string notr="true">font: 12pt &quot;Segoe UI&quot;;</string>
+            <widget class="QToolButton" name="toolButton_Volume">
+             <property name="minimumSize">
+              <size>
+               <width>25</width>
+               <height>27</height>
+              </size>
              </property>
              <property name="text">
-              <string>🔊</string>
+              <string/>
              </property>
             </widget>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignLeft">
-            <widget class="QSlider" name="horizontalSlider">
+            <widget class="QSlider" name="horizontalSlider_Audio_Volume">
              <property name="styleSheet">
               <string notr="true">selection-color: rgb(0, 0, 0);</string>
              </property>

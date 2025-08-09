@@ -14,21 +14,25 @@ SOURCES += \
     Estandar.cpp \
     Usuario.cpp \
     biblioteca.cpp \
+    cancion.cpp \
     cuentas.cpp \
     homewindow.cpp \
     homewindow_copy.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    songwidget.cpp
 
 HEADERS += \
     Administrador.h \
     Estandar.h \
     Usuario.h \
     biblioteca.h \
+    cancion.h \
     cuentas.h \
     homewindow.h \
     homewindow_copy.h \
-    mainwindow.h
+    mainwindow.h \
+    songwidget.h
 
 FORMS += \
     homewindow.ui \

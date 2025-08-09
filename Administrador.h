@@ -3,6 +3,7 @@
 
 #include "usuario.h"
 
+
 // Estructura para álbums
 struct Album {
     int idAlbum;
@@ -37,6 +38,12 @@ public:
     int generarIdAlbumUnico();
     void crearNuevoAlbum(const QString& nombreAlbum);
     void agregarCancionAlbum(int idLista, int cancionId);
+
+    void agregarCancionCatalogo(const QString& titulo, const QString& genero,
+                                const QString& categoria, const QString& rutaPortada,
+                                const QString& rutaAudio);
+    QList<Cancion> obtenerCancionesCatalogo() const;
+    bool eliminarCancionCatalogo(int idCancion);
 
 
     //Serializacion

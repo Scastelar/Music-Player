@@ -249,8 +249,9 @@ void MainWindow::on_loginButton_2_clicked()
 
             if (userActual->getTipo()=="ADMIN"){
                 HomeWindow_Copy* h = new HomeWindow_Copy(this,manejo);
-                this->close();
+                //this->close();
                 h->show();
+                this->hide();
             }else {
             HomeWindow* h = new HomeWindow(this,manejo);
             this->close();

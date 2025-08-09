@@ -3,47 +3,56 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QCryptographicHash>
+#include <QDir>
+#include "cancion.h"
 
 class Usuario {
 protected:
-    int id;  // Cambiado de QString a int
+    int id;
     QString username;
     QString nombreReal;
-    QString contrasena;  // Ahora será cifrada
+    QString contrasena;  // Ahora cifrada
     QString rutaImagen;
-    bool estado;  // true=activo, false=eliminado
+    bool estado;
     QDateTime fechaRegistro;
+
+    QString hashContrasena(const QString& contrasena) const {
+        return QString(QCryptographicHash::hash(
+                           (contrasena + QString::number(id)).toUtf8(),
+                           QCryptographicHash::Sha256).toHex());
+    }
 
 public:
     Usuario(const QString& nombreUsuario, const QString& contrasena);
     virtual ~Usuario() = default;
 
-    // Metodos virtuales puros (clase abstracta)
     virtual QString getTipo() const = 0;
 
     // Getters
-    QString getUsername() const { return username; }
-    int getId() const { return id; }  // Cambiado a int
     QString getNombreUsuario() const { return username; }
+    int getId() const { return id; }
     QString getNombreReal() const { return nombreReal; }
     QString getRutaImagen() const { return rutaImagen; }
     QDateTime getFechaRegistro() const { return fechaRegistro; }
     bool estaActivo() const { return estado; }
 
     bool verificarContrasena(const QString& contrasena) const {
-        // Aquí debería implementarse la verificación de contraseña cifrada
-        return this->contrasena == contrasena;
+        return this->contrasena == hashContrasena(contrasena);
     }
 
     // Setters
     void setRutaImagen(const QString& ruta) { rutaImagen = ruta; }
     void setEstado(bool estado) { this->estado = estado; }
+    void setContrasena(const QString& nuevaContrasena) {
+        contrasena = hashContrasena(nuevaContrasena);
+    }
 
-    // Metodos de serializacion
+    // Métodos de serialización
     virtual void escribirEnStream(QDataStream& stream) const;
     virtual void leerDesdeStream(QDataStream& stream);
 
-    friend class Cuentas; // Permitir acceso a clase Cuentas
+    friend class Cuentas;
 };
 
 #endif // USUARIO_H

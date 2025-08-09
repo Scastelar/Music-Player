@@ -3,9 +3,17 @@
 #include "Administrador.h"
 #include <QDataStream>
 #include <QFileInfo>
+#include <QDir>
+#include <QCryptographicHash>
 #include <QDebug>
 
 Cuentas::Cuentas() : idUsuarioActual(-1), ultimoId(0) {
+    // Crear directorio de usuarios si no existe
+    QDir dir;
+    if (!dir.exists(CARPETA_USUARIOS)) {
+        dir.mkpath(CARPETA_USUARIOS);
+    }
+
     inicializarArchivos();
     cargarUsuariosDesdeArchivo();
 }
@@ -19,7 +27,7 @@ Cuentas::~Cuentas() {
 }
 
 void Cuentas::inicializarArchivos() {
-    const QStringList archivos = {ARCHIVO_USUARIOS, ARCHIVO_ARTISTAS, ARCHIVO_INDICES,ARCHIVO_CALIFICACIONES,ARCHIVO_REPRODUCCIONES};
+    const QStringList archivos = {ARCHIVO_INDICES};
 
     for (const QString& nombreArchivo : archivos) {
         QFile archivo(nombreArchivo);
@@ -43,7 +51,8 @@ void Cuentas::cargarUsuariosDesdeArchivo() {
     }
 
     // Cargar usuarios estándar usando índices si existen
-    QFile usuariosFile(ARCHIVO_USUARIOS);
+    QString usuariosFilePath = CARPETA_USUARIOS + "usuarios.dat";
+    QFile usuariosFile(usuariosFilePath);
     if (usuariosFile.open(QIODevice::ReadOnly)) {
         QDataStream in(&usuariosFile);
 
@@ -80,14 +89,15 @@ void Cuentas::cargarUsuariosDesdeArchivo() {
     }
 
     // Cargar artistas/administradores
-    QFile artistasFile(ARCHIVO_ARTISTAS);
+    QString artistasFilePath = CARPETA_USUARIOS + "artistas.dat";
+    QFile artistasFile(artistasFilePath);
     if (artistasFile.open(QIODevice::ReadOnly)) {
         QDataStream in(&artistasFile);
 
         if (!indices.empty()) {
             // Carga optimizada usando índices
             for (const auto& pair : indices) {
-                if (!pair.second.esArtista) {
+                if (pair.second.esArtista) {
                     artistasFile.seek(pair.second.posicionArchivo);
                     Administrador* usuario = new Administrador("", "", "", "", "");
                     usuario->leerDesdeStream(in);
@@ -101,27 +111,28 @@ void Cuentas::cargarUsuariosDesdeArchivo() {
                 }
             }
         } else {
-        // Carga secuencial (para primera vez o si no hay índices)
-        while (!in.atEnd()) {
-            Administrador* admin = new Administrador("", "","","","");
-            admin->leerDesdeStream(in);
+            // Carga secuencial (para primera vez o si no hay índices)
+            while (!in.atEnd()) {
+                Administrador* admin = new Administrador("", "","","","");
+                admin->leerDesdeStream(in);
 
-            if (admin->getId() > ultimoId) {
-                ultimoId = admin->getId();
+                if (admin->getId() > ultimoId) {
+                    ultimoId = admin->getId();
+                }
+
+                tablaUsuarios[admin->getNombreUsuario()] = admin;
+                tablaUsuariosPorId[admin->getId()] = admin;
             }
-
-            tablaUsuarios[admin->getNombreUsuario()] = admin;
-            tablaUsuariosPorId[admin->getId()] = admin;
         }
     }
-}
 }
 
 void Cuentas::guardarUsuariosEnArchivo() {
     indices.clear(); // Limpiar índices antes de regenerarlos
 
     // Guardar usuarios estándar
-    QFile usuariosFile(ARCHIVO_USUARIOS);
+    QString usuariosFilePath = CARPETA_USUARIOS + "usuarios.dat";
+    QFile usuariosFile(usuariosFilePath);
     if (usuariosFile.open(QIODevice::WriteOnly)) {
         QDataStream out(&usuariosFile);
         for (auto& pair : tablaUsuariosPorId) {
@@ -138,7 +149,8 @@ void Cuentas::guardarUsuariosEnArchivo() {
     }
 
     // Guardar artistas/administradores
-    QFile artistasFile(ARCHIVO_ARTISTAS);
+    QString artistasFilePath = CARPETA_USUARIOS + "artistas.dat";
+    QFile artistasFile(artistasFilePath);
     if (artistasFile.open(QIODevice::WriteOnly)) {
         QDataStream out(&artistasFile);
         for (auto& pair : tablaUsuariosPorId) {
@@ -167,42 +179,41 @@ int Cuentas::generarNuevoId() {
 }
 
 void Cuentas::crearArchivosUsuarioEstandar(int userId) {
-    // 1. Biblioteca personal
-    QString bibliotecaFile = QString("biblioteca_%1.dat").arg(userId);
-    QFile bFile(bibliotecaFile);
-    if (bFile.open(QIODevice::WriteOnly)) {
-        QDataStream out(&bFile);
-        // Cabecera vacía - el archivo existe pero sin contenido inicial
-        bFile.close();
-    }
+    QString userDir = QString("%1%2/").arg(CARPETA_USUARIOS).arg(userId);
+    QDir dir;
+    dir.mkpath(userDir);
 
-    // 2. Listas de reproducción
-    QString listasFile = QString("listas_%1.dat").arg(userId);
-    QFile lFile(listasFile);
-    if (lFile.open(QIODevice::WriteOnly)) {
-        QDataStream out(&lFile);
-        // Cabecera vacía
-        lFile.close();
-    }
+    // Crear archivos para el usuario
+    QStringList archivos = {
+        "biblioteca_" + QString::number(userId) + ".dat",
+        "listas_" + QString::number(userId) + ".dat",
+        "favoritos_" + QString::number(userId) + ".dat"
+    };
 
-    // 3. Canciones favoritas
-    QString favFile = QString("favoritos_%1.dat").arg(userId);
-    QFile fFile(favFile);
-    if (fFile.open(QIODevice::WriteOnly)) {
-        QDataStream out(&fFile);
-        // Cabecera vacía
-        fFile.close();
+    for (const QString& archivo : archivos) {
+        QFile file(userDir + archivo);
+        if (file.open(QIODevice::WriteOnly)) {
+            file.close();
+        }
     }
 }
 
 void Cuentas::crearArchivosAdministrador(int userId) {
-    // 1. Álbums
-    QString albumsFile = QString("albums_%1.dat").arg(userId);
-    QFile aFile(albumsFile);
-    if (aFile.open(QIODevice::WriteOnly)) {
-        QDataStream out(&aFile);
-        // Cabecera vacía
-        aFile.close();
+    QString userDir = QString("%1%2/").arg(CARPETA_USUARIOS).arg(userId);
+    QDir dir;
+    dir.mkpath(userDir);
+
+    // Crear archivos para el administrador
+    QStringList archivos = {
+        "albumes_" + QString::number(userId) + ".dat",
+        "catalogo_" + QString::number(userId) + ".dat"
+    };
+
+    for (const QString& archivo : archivos) {
+        QFile file(userDir + archivo);
+        if (file.open(QIODevice::WriteOnly)) {
+            file.close();
+        }
     }
 }
 
@@ -226,9 +237,8 @@ Usuario* Cuentas::getIdUsuarioActual() const {
 }
 
 bool Cuentas::setIdUsuarioActual(int nuevoId) {
-    // Verificar si el ID existe en la tabla
     if (nuevoId == -1) {
-        idUsuarioActual = -1; // Permite cerrar sesión
+        idUsuarioActual = -1;
         return true;
     }
 
@@ -238,7 +248,7 @@ bool Cuentas::setIdUsuarioActual(int nuevoId) {
         return true;
     }
 
-    return false; // El ID no existe
+    return false;
 }
 
 bool Cuentas::crearUsuarioNormal(const QString& nombreUsuario, const QString& contrasena,
@@ -247,10 +257,11 @@ bool Cuentas::crearUsuarioNormal(const QString& nombreUsuario, const QString& co
     if (existeUsuario(nombreUsuario)) return false;
 
     Estandar* nuevoUsuario = new Estandar(nombreUsuario, contrasena, nombreReal, email);
-    nuevoUsuario->rutaImagen = rutaImagen;
     nuevoUsuario->id = generarNuevoId();
+    nuevoUsuario->rutaImagen = rutaImagen;
     nuevoUsuario->fechaRegistro = QDateTime::currentDateTime();
     nuevoUsuario->estado = true;
+    nuevoUsuario->setContrasena(contrasena); // Esto generará el hash
 
     tablaUsuarios[nombreUsuario] = nuevoUsuario;
     tablaUsuariosPorId[nuevoUsuario->getId()] = nuevoUsuario;
@@ -258,10 +269,19 @@ bool Cuentas::crearUsuarioNormal(const QString& nombreUsuario, const QString& co
     crearArchivosUsuarioEstandar(nuevoUsuario->getId());
 
     // Guardar inmediatamente en archivo
-    QFile file(ARCHIVO_USUARIOS);
+    QString usuariosFilePath = CARPETA_USUARIOS + "usuarios.dat";
+    QFile file(usuariosFilePath);
     if (file.open(QIODevice::Append)) {
         QDataStream out(&file);
         nuevoUsuario->escribirEnStream(out);
+
+        // Actualizar índices
+        IndiceUsuario indice;
+        indice.nombreUsuario = nombreUsuario;
+        indice.posicionArchivo = file.pos() - sizeof(nuevoUsuario); // Aproximación
+        indice.esArtista = false;
+        indices[nombreUsuario] = indice;
+
         return true;
     }
 
@@ -274,28 +294,37 @@ bool Cuentas::crearArtista(const QString& nombreArtistico, const QString& contra
                            const QString& rutaImagen) {
     if (existeUsuario(nombreArtistico)) return false;
 
-    Administrador* nuevoArtista = new Administrador(nombreArtistico, contrasena, pais, genero,descripcion);
+    Administrador* nuevoArtista = new Administrador(nombreArtistico, contrasena, pais, genero, descripcion);
     nuevoArtista->id = generarNuevoId();
     nuevoArtista->nombreReal = nombreReal;
     nuevoArtista->rutaImagen = rutaImagen;
     nuevoArtista->fechaRegistro = QDateTime::currentDateTime();
     nuevoArtista->estado = true;
+    nuevoArtista->setContrasena(contrasena); // Esto generará el hash
 
     tablaUsuarios[nombreArtistico] = nuevoArtista;
     tablaUsuariosPorId[nuevoArtista->getId()] = nuevoArtista;
 
     crearArchivosAdministrador(nuevoArtista->getId());
 
-
     // Guardar en archivo de artistas
-    QFile file(ARCHIVO_ARTISTAS);
+    QString artistasFilePath = CARPETA_USUARIOS + "artistas.dat";
+    QFile file(artistasFilePath);
     if (file.open(QIODevice::Append)) {
         QDataStream out(&file);
         nuevoArtista->escribirEnStream(out);
+
+        // Actualizar índices
+        IndiceUsuario indice;
+        indice.nombreUsuario = nombreArtistico;
+        indice.posicionArchivo = file.pos() - sizeof(nuevoArtista); // Aproximación
+        indice.esArtista = true;
+        indices[nombreArtistico] = indice;
+
         return true;
     }
 
-    delete nuevoArtista;  // Si falla el guardado, liberar memoria
+    delete nuevoArtista;
     return false;
 }
 
@@ -312,15 +341,12 @@ bool Cuentas::desactivarCuenta(const QString& nombreUsuario) {
     Usuario* usuario = buscarUsuario(nombreUsuario);
     if (usuario && usuario->estaActivo()) {
         usuario->estado = false;
-
-        // Reescribir todos los usuarios para actualizar el estado
         guardarUsuariosEnArchivo();
         return true;
     }
     return false;
 }
 
-// Implementación de los operadores para IndiceUsuario
 QDataStream& operator<<(QDataStream& out, const IndiceUsuario& indice) {
     out << indice.nombreUsuario << indice.posicionArchivo << indice.esArtista;
     return out;
@@ -331,7 +357,6 @@ QDataStream& operator>>(QDataStream& in, IndiceUsuario& indice) {
     return in;
 }
 
-// Implementación de los operadores para unordered_map
 QDataStream& operator<<(QDataStream& out, const std::unordered_map<QString, IndiceUsuario>& map) {
     out << static_cast<quint32>(map.size());
     for (const auto& pair : map) {
