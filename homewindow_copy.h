@@ -7,6 +7,8 @@
 #include <QAudioOutput>   // For Qt 6
 #include <QGridLayout>
 #include <QMetaType>
+#include <QFileSystemWatcher>
+
 #include "cuentas.h"
 #include "cancion.h"
 
@@ -37,6 +39,7 @@ public:
     void seleccionarPortada();
     void verificarYCrearAlbum();
     void finalizarAlbum();
+    void EditarPerfil();
 
 private slots:
     void on_toolButton_Playlist_clicked();
@@ -58,12 +61,19 @@ private slots:
 
     void on_toolButton_Volume_clicked();
 
+    void onCancionesFileChanged(const QString &path);
+
+    void on_toolButton_limpiar_clicked();
+
 private:
     Ui::HomeWindow_Copy *ui;
     Cuentas* manejo;
     QMediaPlayer *media;
     QAudioOutput* audioOutput;
 
+    QFileSystemWatcher *fileWatcher;
+
+    void initComponents();
 
     QString Montserrat = "Montserrat";
     QString MaterialIcons = "Material-Icons";

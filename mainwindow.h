@@ -2,9 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "cuentas.h"
 
-#include <QMediaPlayer>
-#include <QAudioOutput>   // For Qt 6
 
 #include <QFileDialog>
 #include <QStyle>
@@ -20,10 +19,15 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent, Cuentas& manejo);
     ~MainWindow();
 
 
+private:
+    Ui::MainWindow *ui;
+    Cuentas* manejo;
+    void initPopup();
+    void resetearCampos();
 private slots:
     void on_regButton_clicked();
 
@@ -43,10 +47,6 @@ private slots:
 
     void on_crearButton2_clicked();
 
-private:
-    Ui::MainWindow *ui;
-    QMediaPlayer *M_Player;
-    void initPopup();
-    void resetearCampos();
+    void on_backButton_3_clicked();
 };
 #endif // MAINWINDOW_H

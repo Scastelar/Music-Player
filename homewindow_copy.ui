@@ -32,6 +32,18 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item alignment="Qt::AlignmentFlag::AlignLeft">
       <widget class="QFrame" name="verticalFrame">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="styleSheet">
         <string notr="true">color: rgb(255, 255, 255);</string>
        </property>
@@ -277,7 +289,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="page">
            <widget class="QScrollArea" name="scrollArea">
@@ -285,9 +297,15 @@
              <rect>
               <x>9</x>
               <y>49</y>
-              <width>650</width>
+              <width>661</width>
               <height>324</height>
              </rect>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
             </property>
             <property name="widgetResizable">
              <bool>true</bool>
@@ -297,7 +315,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>648</width>
+               <width>659</width>
                <height>322</height>
               </rect>
              </property>
@@ -645,6 +663,22 @@ background-color: rgb(186, 186, 186);</string>
              <string>Crear!</string>
             </property>
            </widget>
+           <widget class="QToolButton" name="toolButton_limpiar">
+            <property name="geometry">
+             <rect>
+              <x>560</x>
+              <y>130</y>
+              <width>31</width>
+              <height>31</height>
+             </rect>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: rgb(245, 95, 95);</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
           </widget>
           <widget class="QWidget" name="page_3">
            <widget class="QLabel" name="label_10">
@@ -660,13 +694,13 @@ background-color: rgb(186, 186, 186);</string>
              <string>Editar Perfil</string>
             </property>
            </widget>
-           <widget class="QLineEdit" name="lineEdit_3">
+           <widget class="QLineEdit" name="editUserLbl">
             <property name="geometry">
              <rect>
               <x>70</x>
               <y>270</y>
               <width>211</width>
-              <height>41</height>
+              <height>31</height>
              </rect>
             </property>
             <property name="styleSheet">
@@ -679,13 +713,13 @@ background-color: rgb(186, 186, 186);</string>
              <string>Nombre Artistico</string>
             </property>
            </widget>
-           <widget class="QLineEdit" name="lineEdit_4">
+           <widget class="QLineEdit" name="editNomLbl">
             <property name="geometry">
              <rect>
               <x>350</x>
               <y>100</y>
               <width>231</width>
-              <height>41</height>
+              <height>31</height>
              </rect>
             </property>
             <property name="styleSheet">
@@ -698,13 +732,13 @@ background-color: rgb(186, 186, 186);</string>
              <string>Nombre Real</string>
             </property>
            </widget>
-           <widget class="QLineEdit" name="lineEdit_5">
+           <widget class="QLineEdit" name="editPaisLbl">
             <property name="geometry">
              <rect>
               <x>70</x>
-              <y>330</y>
+              <y>320</y>
               <width>211</width>
-              <height>41</height>
+              <height>31</height>
              </rect>
             </property>
             <property name="styleSheet">
@@ -714,16 +748,16 @@ background-color: rgb(186, 186, 186);</string>
              <string/>
             </property>
             <property name="placeholderText">
-             <string>Correo Electrónico</string>
+             <string>Pais de origen</string>
             </property>
            </widget>
-           <widget class="QLineEdit" name="lineEdit_6">
+           <widget class="QLineEdit" name="editPassLbl">
             <property name="geometry">
              <rect>
               <x>350</x>
-              <y>170</y>
+              <y>150</y>
               <width>231</width>
-              <height>41</height>
+              <height>31</height>
              </rect>
             </property>
             <property name="styleSheet">
@@ -736,7 +770,7 @@ background-color: rgb(186, 186, 186);</string>
              <string>Contraseña</string>
             </property>
            </widget>
-           <widget class="QLabel" name="label_11">
+           <widget class="QLabel" name="editPerfilLbl">
             <property name="geometry">
              <rect>
               <x>70</x>
@@ -758,7 +792,7 @@ background-color: rgb(186, 186, 186);</string>
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_upload_2">
+           <widget class="QToolButton" name="editUploadButton">
             <property name="geometry">
              <rect>
               <x>250</x>
@@ -771,7 +805,7 @@ background-color: rgb(186, 186, 186);</string>
              <string/>
             </property>
            </widget>
-           <widget class="QToolButton" name="toolButton_upload_4">
+           <widget class="QToolButton" name="editGuardarButton">
             <property name="geometry">
              <rect>
               <x>400</x>
@@ -788,11 +822,11 @@ background-color: rgb(186, 186, 186);</string>
              <string>Guardar cambios</string>
             </property>
            </widget>
-           <widget class="QTextEdit" name="textEdit">
+           <widget class="QTextEdit" name="editDescLbl">
             <property name="geometry">
              <rect>
               <x>350</x>
-              <y>240</y>
+              <y>250</y>
               <width>231</width>
               <height>71</height>
              </rect>
@@ -820,6 +854,54 @@ background-color: rgb(255, 42, 42);</string>
             <property name="text">
              <string>Desactivar cuenta</string>
             </property>
+           </widget>
+           <widget class="QComboBox" name="editGeneroCB">
+            <property name="geometry">
+             <rect>
+              <x>350</x>
+              <y>200</y>
+              <width>231</width>
+              <height>31</height>
+             </rect>
+            </property>
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <item>
+             <property name="text">
+              <string>Pop</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Corridos</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Cristiano</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Electronica</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Regueton</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Rock</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Clasica</string>
+             </property>
+            </item>
            </widget>
           </widget>
           <widget class="QWidget" name="page_4">
@@ -1409,36 +1491,54 @@ font: 12pt &quot;Segoe UI&quot;;</string>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_3">
+               <widget class="QWidget" name="horizontalWidget" native="true">
                 <property name="minimumSize">
                  <size>
-                  <width>40</width>
-                  <height>37</height>
+                  <width>0</width>
+                  <height>32</height>
                  </size>
                 </property>
-                <property name="styleSheet">
-                 <string notr="true">font: 9pt &quot;Segoe UI&quot;;
+                <layout class="QHBoxLayout" name="horizontalLayout_8">
+                 <item>
+                  <widget class="QLabel" name="label_3">
+                   <property name="minimumSize">
+                    <size>
+                     <width>40</width>
+                     <height>37</height>
+                    </size>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 9pt &quot;Segoe UI&quot;;
 color: rgb(243, 243, 243)</string>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_Value_1">
+                   <property name="minimumSize">
+                    <size>
+                     <width>45</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_Value_1">
-             <property name="minimumSize">
-              <size>
-               <width>47</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
             </widget>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignVCenter">
@@ -1498,29 +1598,41 @@ color: rgb(243, 243, 243)</string>
                </widget>
               </item>
               <item>
-               <widget class="QSlider" name="horizontalSlider_Audio_File_Duration">
-                <property name="styleSheet">
-                 <string notr="true">selection-background-color: rgb(255, 255, 255);</string>
+               <widget class="QWidget" name="horizontalWidget" native="true">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
                 </property>
-                <property name="orientation">
-                 <enum>Qt::Orientation::Horizontal</enum>
-                </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_11">
+                 <item>
+                  <widget class="QSlider" name="horizontalSlider_Audio_File_Duration">
+                   <property name="styleSheet">
+                    <string notr="true">selection-background-color: rgb(255, 255, 255);</string>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_Value_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>47</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
                </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_Value_2">
-             <property name="minimumSize">
-              <size>
-               <width>47</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
             </widget>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignHCenter">
@@ -1548,6 +1660,12 @@ color: rgb(243, 243, 243)</string>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignLeft">
             <widget class="QSlider" name="horizontalSlider_Audio_Volume">
+             <property name="minimumSize">
+              <size>
+               <width>70</width>
+               <height>0</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">selection-color: rgb(0, 0, 0);</string>
              </property>

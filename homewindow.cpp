@@ -42,11 +42,18 @@ HomeWindow::HomeWindow(QWidget *parent,Cuentas& manejo)
     int fontId = QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");
     QStringList families = QFontDatabase::applicationFontFamilies(fontId);
     if (!families.isEmpty()) {
-        Montserrat = families.at(0);  // ahora sí tienes el nombre real
+        Montserrat = families.at(0);
     }
 
     int iconFontId = QFontDatabase::addApplicationFont(":/MaterialIcons-Regular.ttf");
     MaterialIcons = QFontDatabase::applicationFontFamilies(iconFontId).at(0);
+
+    //Actualizar Archivos en componentes
+    fileWatcher = new QFileSystemWatcher(this);
+    QString archivoCanciones = "canciones.dat";
+    fileWatcher->addPath(archivoCanciones);
+
+    connect(fileWatcher, &QFileSystemWatcher::fileChanged, this, &HomeWindow::onCancionesFileChanged);
 
     // UI components
     QPixmap logo;
@@ -204,13 +211,13 @@ void HomeWindow::playSong(const Cancion& cancion) {
     if(cover.isNull()) {
         cover = QPixmap(":/images/default_cover.png");
     }
-    ui->labelP->setPixmap(cover.scaled(ui->labelP->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ui->labelP->setPixmap(cover.scaled(ui->labelP->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
     // Aquí iría el código para cargar y reproducir el archivo de audio
     // usando cancion.getRutaAudio()
     media->setSource(QUrl::fromLocalFile(cancion.getRutaAudio()));
+    setIcono(ui->toolButton_play,0xe034,20);
     media->play();
-
 
 }
 
@@ -252,8 +259,11 @@ void HomeWindow::conectarMenu(){
 
     connect(cerrarSesion, &QAction::triggered, this, [=]() {
         qDebug() << "Cerrar sesión";
+        if (!isPaused){
+            media->pause();
+        }
         manejo->cerrarSesion();
-        MainWindow* m = new MainWindow(nullptr);
+        MainWindow* m = new MainWindow(nullptr,*manejo);
         m->show();
         this->close();
     });
@@ -281,15 +291,13 @@ void HomeWindow::updateduration(qint64 duration)
 void HomeWindow::on_toolButton_play_clicked()
 {
     if (!isPaused){
-        setIcono(ui->toolButton_play,0xe034,20);
+        setIcono(ui->toolButton_play,0xe037,20);
         isPaused = true;
         media->pause();
     }else {
-        setIcono(ui->toolButton_play,0xe037,20);
+        setIcono(ui->toolButton_play,0xe034,20);
         isPaused = false;
-        while (usuario->getId()!=-1){
-            media->play();
-        }
+        media->play();
     }
 }
 
@@ -330,9 +338,18 @@ void HomeWindow::on_toolButton_upload_5_clicked()
     else if (opc == QMessageBox::Ok) {
         manejo->desactivarCuenta(usuario->getNombreUsuario());
         manejo->cerrarSesion();
-        MainWindow* m = new MainWindow(nullptr);
+        MainWindow* m = new MainWindow(nullptr,*manejo);
         m->show();
         this->close();
+    }
+}
+
+void HomeWindow::onCancionesFileChanged(const QString &path) {
+    Q_UNUSED(path);
+
+    loadSongs();
+    if (QFile::exists(path) && !fileWatcher->files().contains(path)) {
+        fileWatcher->addPath(path);
     }
 }
 

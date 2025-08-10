@@ -10,7 +10,7 @@ struct Album {
     QString nombre;
     QDateTime fechaCreacion;
     bool activo;
-    QString tipo;  // "single", "EP" o "album"
+    QString tipoAlbum;  // "single", "EP" o "album"
     QList<int> canciones;
 };
 
@@ -25,9 +25,6 @@ private:
     void guardarUltimoIdAlbum();
 public:
     Administrador(const QString& username, const QString& password, const QString& pais, const QString& genero, const QString& desc);
-
-    // Implementación de metodos virtuales
-    QString getTipo() const override { return "ADMIN"; }
 
     //MEtodos propios
     QString getPais() const { return pais; }

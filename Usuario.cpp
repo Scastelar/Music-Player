@@ -12,10 +12,10 @@ Usuario::Usuario(const QString& nombreUsuario, const QString& contrasena) :
 
 void Usuario::escribirEnStream(QDataStream& stream) const {
     stream << id << username << contrasena << nombreReal
-            << rutaImagen << estado << fechaRegistro;
+           << rutaImagen << estado << fechaRegistro;
 }
 
 void Usuario::leerDesdeStream(QDataStream& stream) {
     stream >> id >> username >> contrasena >> nombreReal
-         >> rutaImagen >> estado >> fechaRegistro;
+        >> rutaImagen >> estado >> fechaRegistro;
 }

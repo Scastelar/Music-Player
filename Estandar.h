@@ -37,8 +37,6 @@ public:
     Estandar(const QString& username, const QString& password,
              const QString& nombreReal, const QString& email);
 
-    //Metodos virtuales
-    QString getTipo() const override { return "ESTANDAR"; }
 
     // Métodos para biblioteca
     void agregarCancionABiblioteca(int cancionId);

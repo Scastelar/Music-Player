@@ -9,8 +9,8 @@ Estandar::Estandar(const QString& username, const QString& password,
     Usuario(username, password),
     email(email),
     ultimoIdPlaylist(0) {  // Inicializar contador de playlists
+    tipo="ESTANDAR";
     this->nombreReal = nombreReal;
-    //this->rutaImagen = rutaImagen;
     cargarUltimoIdPlaylist();  // Cargar el último ID usado al crear el objeto
 }
 
@@ -212,10 +212,10 @@ bool Estandar::esCancionFavorita(int cancionId) const {
 
 void Estandar::escribirEnStream(QDataStream& stream) const {
     Usuario::escribirEnStream(stream);
-    stream << email << ultimoIdPlaylist;
+    stream << email << ultimoIdPlaylist << tipo;
 }
 
 void Estandar::leerDesdeStream(QDataStream& stream) {
     Usuario::leerDesdeStream(stream);
-    stream >> email >> ultimoIdPlaylist;
+    stream >> email >> ultimoIdPlaylist >> tipo;
 }

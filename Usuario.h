@@ -14,6 +14,7 @@ protected:
     QString nombreReal;
     QString contrasena;  // Ahora cifrada
     QString rutaImagen;
+    QString tipo;
     bool estado;
     QDateTime fechaRegistro;
 
@@ -27,7 +28,6 @@ public:
     Usuario(const QString& nombreUsuario, const QString& contrasena);
     virtual ~Usuario() = default;
 
-    virtual QString getTipo() const = 0;
 
     // Getters
     QString getNombreUsuario() const { return username; }
@@ -36,6 +36,7 @@ public:
     QString getRutaImagen() const { return rutaImagen; }
     QDateTime getFechaRegistro() const { return fechaRegistro; }
     bool estaActivo() const { return estado; }
+    QString getTipo() const { return tipo; }
 
     bool verificarContrasena(const QString& contrasena) const {
         return this->contrasena == hashContrasena(contrasena);

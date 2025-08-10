@@ -7,16 +7,17 @@ Administrador::Administrador(const QString& username, const QString& password, c
     , pais(pais), genero(genero), descripcion(desc)
 
 {
+    tipo="ADMIN";
 }
 
 void Administrador::escribirEnStream(QDataStream& stream) const {
     Usuario::escribirEnStream(stream);
-    stream << pais << genero << descripcion;
+    stream << pais << genero << descripcion << tipo;
 }
 
 void Administrador::leerDesdeStream(QDataStream& stream) {
     Usuario::leerDesdeStream(stream);
-    stream >> pais >> genero >> descripcion;
+    stream >> pais >> genero >> descripcion  >> tipo;
 }
 
 void Administrador::agregarCancionCatalogo(const QString& titulo, const QString& genero,

@@ -8,19 +8,15 @@
 #include <QMessageBox>
 
 QString rutaImagen="";
-Cuentas manejo;
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget *parent, Cuentas& manejo)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , manejo(&manejo) // Guardamos la dirección de manejo que nos pasó main()
 {
     ui->setupUi(this);
-
-    M_Player = new QMediaPlayer();
-
-
-   // ui->pushButton_Play->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 }
+
 
 MainWindow::~MainWindow()
 {
@@ -119,7 +115,7 @@ void MainWindow::on_loginButton_clicked()
 
 void MainWindow::on_loadButton1_clicked()
 {
-    rutaImagen = QFileDialog::getOpenFileName(this, "Seleccionar imagen de perfil", "", "Imagenes (*.jpg *.jpeg *.png)");
+    rutaImagen = QFileDialog::getOpenFileName(this, "Seleccionar imagen de perfil", "/Users/compu/Pictures/archivos", "Imagenes (*.jpg *.jpeg *.png)");
 
     if (!rutaImagen.isEmpty()) {
         QPixmap avatar(rutaImagen);
@@ -139,7 +135,7 @@ void MainWindow::on_loadButton1_clicked()
 
 void MainWindow::on_loadButton2_clicked()
 {
-    rutaImagen = QFileDialog::getOpenFileName(this, "Seleccionar imagen de perfil", "", "Imagenes (*.jpg *.jpeg *.png)");
+    rutaImagen = QFileDialog::getOpenFileName(this, "Seleccionar imagen de perfil", "/Users/compu/Pictures/archivos", "Imagenes (*.jpg *.jpeg *.png)");
 
     if (!rutaImagen.isEmpty()) {
         QPixmap avatar(rutaImagen);
@@ -185,15 +181,15 @@ void MainWindow::on_crearButton1_clicked()
         return;
     }
 
-    if (manejo.existeUsuario(nombre)){
+    if (manejo->existeUsuario(nombre)){
         QMessageBox::critical(nullptr,"Error","Este usuario ya existe, elige otro nombre",QMessageBox::Ok);
     } else {
-        manejo.crearUsuarioNormal(nombre,password,nombreReal,email,img);
+        manejo->crearUsuarioNormal(nombre,password,nombreReal,email,img);
         QMessageBox::information(nullptr,"Exito","Tu cuenta ha sido registrada!",QMessageBox::Ok);
         resetearCampos();
-        Usuario* userActual = manejo.autenticar(nombre,password);
-        manejo.setIdUsuarioActual(userActual->getId());
-        HomeWindow* h = new HomeWindow(this,manejo);
+        Usuario* userActual = manejo->autenticar(nombre,password);
+        manejo->setIdUsuarioActual(userActual->getId());
+        HomeWindow* h = new HomeWindow(this,*manejo);
         this->close();
         h->show();
     }
@@ -215,15 +211,15 @@ void MainWindow::on_crearButton2_clicked()
         return;
     }
 
-    if (manejo.existeUsuario(nombre)){
+    if (manejo->existeUsuario(nombre)){
         QMessageBox::critical(nullptr,"Error","Este usuario ya existe, elige otro nombre",QMessageBox::Ok);
     } else {
-        manejo.crearArtista(nombre,password,pais,genero,nombreReal,desc,img);
+        manejo->crearArtista(nombre,password,pais,genero,nombreReal,desc,img);
         QMessageBox::information(nullptr,"Exito","Tu cuenta ha sido registrada!",QMessageBox::Ok);
         resetearCampos();
-        Usuario* userActual = manejo.autenticar(nombre,password);
-        manejo.setIdUsuarioActual(userActual->getId());
-        HomeWindow* h = new HomeWindow(this,manejo);
+        Usuario* userActual = manejo->autenticar(nombre,password);
+        manejo->setIdUsuarioActual(userActual->getId());
+        HomeWindow_Copy* h = new HomeWindow_Copy(this,*manejo);
         this->close();
         h->show();
     }
@@ -239,8 +235,8 @@ void MainWindow::on_loginButton_2_clicked()
         QMessageBox::critical(nullptr,"Error","Debes llenar los campos necesarios",QMessageBox::Ok);
         return;
     } else {
-        Usuario* userActual = manejo.autenticar(user,pass);
-        manejo.setIdUsuarioActual(userActual->getId());
+        Usuario* userActual = manejo->autenticar(user,pass);
+        manejo->setIdUsuarioActual(userActual->getId());
         if (userActual==nullptr || !userActual->estaActivo()){
             QMessageBox::critical(nullptr,"Error","Usuario invalido.",QMessageBox::Ok);
             return;
@@ -248,13 +244,12 @@ void MainWindow::on_loginButton_2_clicked()
             QMessageBox::information(nullptr,"yay","Ingresaste!",QMessageBox::Ok);
 
             if (userActual->getTipo()=="ADMIN"){
-                HomeWindow_Copy* h = new HomeWindow_Copy(this,manejo);
-                //this->close();
+                HomeWindow_Copy* h = new HomeWindow_Copy(nullptr,*manejo);
+                this->close();
                 h->show();
-                this->hide();
             }else {
-            HomeWindow* h = new HomeWindow(this,manejo);
-            this->close();
+            HomeWindow* h = new HomeWindow(nullptr,*manejo);
+             this->close();
             h->show();
             }
         }
@@ -265,4 +260,10 @@ void MainWindow::on_loginButton_2_clicked()
 
 
 
+
+
+void MainWindow::on_backButton_3_clicked()
+{
+    ui->stackedWidget->setCurrentIndex(0);
+}
 

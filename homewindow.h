@@ -1,11 +1,12 @@
 #ifndef HOMEWINDOW_H
 #define HOMEWINDOW_H
 
-#include <QMainWindow>
 #include <QToolButton>
 #include <QGridLayout>
 #include <QMediaPlayer>
 #include <QAudioOutput>   // For Qt 6
+#include <QFileSystemWatcher>
+#include <QMainWindow>
 #include "cuentas.h"
 
 namespace Ui {
@@ -46,6 +47,8 @@ private slots:
 
     void on_toolButton_upload_5_clicked();
 
+    void onCancionesFileChanged(const QString &path);
+
 private:
     Ui::HomeWindow *ui;
     Cuentas* manejo;
@@ -53,6 +56,8 @@ private:
     QString MaterialIcons = "Material-Icons";
     QMediaPlayer *media;
     QAudioOutput* audioOutput;
+
+    QFileSystemWatcher *fileWatcher;
 
     bool isMuted = false;
     bool isPaused = false;
