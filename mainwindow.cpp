@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "homewindow.h"
-#include "homewindow_copy.h"
+#include "artistawindow.h"
 #include "ui_mainwindow.h"
 
 #include <QVBoxLayout>
@@ -84,6 +84,10 @@ void MainWindow::initPopup(){
     } else {
         ui->stackedWidget->setCurrentIndex(2);
     }
+
+    ui->lineEdit_3->setEchoMode(QLineEdit::Password);
+    ui->lineEdit_7->setEchoMode(QLineEdit::Password);
+    isCensurada = true;
 }
 
 void MainWindow::resetearCampos(){
@@ -101,6 +105,7 @@ void MainWindow::resetearCampos(){
     ui->imgLbl_2->clear();
     ui->logLbl->clear();
     ui->logLbl2->clear();
+    isCensurada = true;
 }
 
 void MainWindow::on_regButton_clicked()
@@ -189,7 +194,7 @@ void MainWindow::on_crearButton1_clicked()
         resetearCampos();
         Usuario* userActual = manejo->autenticar(nombre,password);
         manejo->setIdUsuarioActual(userActual->getId());
-        HomeWindow* h = new HomeWindow(this,*manejo);
+        HomeWindow* h = new HomeWindow(nullptr,*manejo);
         this->close();
         h->show();
     }
@@ -219,7 +224,7 @@ void MainWindow::on_crearButton2_clicked()
         resetearCampos();
         Usuario* userActual = manejo->autenticar(nombre,password);
         manejo->setIdUsuarioActual(userActual->getId());
-        HomeWindow_Copy* h = new HomeWindow_Copy(this,*manejo);
+        ArtistaWindow* h = new ArtistaWindow(nullptr,*manejo);
         this->close();
         h->show();
     }
@@ -244,7 +249,7 @@ void MainWindow::on_loginButton_2_clicked()
             QMessageBox::information(nullptr,"yay","Ingresaste!",QMessageBox::Ok);
 
             if (userActual->getTipo()=="ADMIN"){
-                HomeWindow_Copy* h = new HomeWindow_Copy(nullptr,*manejo);
+                ArtistaWindow* h = new ArtistaWindow(nullptr,*manejo);
                 this->close();
                 h->show();
             }else {
@@ -257,13 +262,32 @@ void MainWindow::on_loginButton_2_clicked()
 }
 
 
-
-
-
-
-
 void MainWindow::on_backButton_3_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
+}
+
+
+void MainWindow::on_toolButton_clicked()
+{
+    if (isCensurada){
+        isCensurada = false;
+        ui->lineEdit_3->setEchoMode(QLineEdit::Normal);
+    } else {
+        isCensurada = true;
+        ui->lineEdit_3->setEchoMode(QLineEdit::Password);
+    }
+}
+
+
+void MainWindow::on_toolButton_2_clicked()
+{
+    if (isCensurada){
+        isCensurada = false;
+        ui->lineEdit_7->setEchoMode(QLineEdit::Normal);
+    } else {
+        isCensurada = true;
+        ui->lineEdit_7->setEchoMode(QLineEdit::Password);
+    }
 }
 

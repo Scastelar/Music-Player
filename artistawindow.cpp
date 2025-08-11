@@ -1,5 +1,5 @@
-#include "HomeWindow_Copy.h"
-#include "ui_HomeWindow_Copy.h"
+#include "artistawindow.h"
+#include "ui_artistawindow.h"
 #include "mainwindow.h"
 #include "songwidget.h"
 
@@ -10,12 +10,13 @@
 #include <QComboBox>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QDebug>
 
 
-HomeWindow_Copy::HomeWindow_Copy(QWidget *parent,Cuentas& manejo)
+ArtistaWindow::ArtistaWindow(QWidget *parent,Cuentas& manejo)
     : QMainWindow(parent)
-    , ui(new Ui::HomeWindow_Copy)
+    , ui(new Ui::ArtistaWindow)
     ,  manejo(&manejo)
 {
     ui->setupUi(this);
@@ -29,20 +30,18 @@ HomeWindow_Copy::HomeWindow_Copy(QWidget *parent,Cuentas& manejo)
     fileWatcher = new QFileSystemWatcher(this);
     QString archivoCanciones = "canciones.dat";
     fileWatcher->addPath(archivoCanciones);
-    connect(fileWatcher, &QFileSystemWatcher::fileChanged, this, &HomeWindow_Copy::onCancionesFileChanged);
+    connect(fileWatcher, &QFileSystemWatcher::fileChanged, this, &ArtistaWindow::onCancionesFileChanged);
 
     loadSongs();
     initComponents();
-    EditarPerfil();
-
 }
 
-HomeWindow_Copy::~HomeWindow_Copy()
+ArtistaWindow::~ArtistaWindow()
 {
     delete ui;
 }
 
-void HomeWindow_Copy::playSong(const Cancion& cancion) {
+void ArtistaWindow::playSong(const Cancion& cancion) {
     // Implementa la lógica para reproducir la canción
     ui->label_3->setText(cancion.getTitulo());
     ui->label_2->setText(cancion.getArtista());
@@ -62,26 +61,26 @@ void HomeWindow_Copy::playSong(const Cancion& cancion) {
 
 //Agrega temporalmente canciones al list widget
 // *restringir canciones repetidas/existentes del catalogo
-void HomeWindow_Copy::actualizarListaCanciones() {
+void ArtistaWindow::actualizarListaCanciones() {
 
-    if (!ui->listaCancionesWidget_2) {
+    if (!ui->listaCancionesWidget) {
         qWarning() << "listaCancionesWidget es null, no se puede actualizar.";
         return;
     }
-    ui->listaCancionesWidget_2->clear();
+    ui->listaCancionesWidget->clear();
 
     for (const auto& cancion : albumActual.canciones) {
         QListWidgetItem* item = new QListWidgetItem;
         item->setText(QString("%1 - %2").arg(cancion.titulo, cancion.genero));
         item->setData(Qt::UserRole, QVariant::fromValue(cancion)); // Guardamos el objeto completo
-        ui->listaCancionesWidget_2->addItem(item);
+        ui->listaCancionesWidget->addItem(item);
     }
 }
 
 
 //Carga las canciones del catalogo
 // *ignorar canciones eliminadas/ con ruta invalida
-void HomeWindow_Copy::loadSongs()
+void ArtistaWindow::loadSongs()
 {
     clearGrid();
 
@@ -91,7 +90,7 @@ void HomeWindow_Copy::loadSongs()
     if(canciones.isEmpty()) {
         QLabel *emptyLabel = new QLabel("No hay canciones disponibles");
         emptyLabel->setStyleSheet("color: #777; font-size: 16px;");
-        ui->gridLayout->addWidget(emptyLabel, 0, 0, Qt::AlignCenter);
+        ui->gridLayout_6->addWidget(emptyLabel, 0, 0, Qt::AlignCenter);
         return;
     }
 
@@ -101,17 +100,17 @@ void HomeWindow_Copy::loadSongs()
     // Añadir canciones al grid
     for(int i = 0; i < canciones.size(); ++i) {
         SongWidget *songWidget = new SongWidget(canciones[i]);
-        connect(songWidget, &SongWidget::songClicked, this, &HomeWindow_Copy::playSong);
+        connect(songWidget, &SongWidget::songClicked, this, &ArtistaWindow::playSong);
 
         int row = i / columnCount;
         int col = i % columnCount;
-        ui->gridLayout->addWidget(songWidget, row, col, Qt::AlignCenter);
+        ui->gridLayout_6->addWidget(songWidget, row, col, Qt::AlignCenter);
     }
 }
-void HomeWindow_Copy::clearGrid()
+void ArtistaWindow::clearGrid()
 {
     QLayoutItem *child;
-    while ((child = ui->gridLayout->takeAt(0)) != nullptr) {
+    while ((child = ui->gridLayout_6->takeAt(0)) != nullptr) {
         delete child->widget();
         delete child;
     }
@@ -119,19 +118,19 @@ void HomeWindow_Copy::clearGrid()
 
 
 // Metodos para crear un album
-void HomeWindow_Copy::seleccionarPortada() {
+void ArtistaWindow::seleccionarPortada() {
     rutaPortada = QFileDialog::getOpenFileName(this,"Seleccionar portada", "/Users/compu/Pictures/Albums", "Imágenes (*.png *.jpg *.jpeg)");
 
-    if (ui->label_8) {
+    if (ui->labelPortada) {
         QPixmap pixmap(rutaPortada);
-        ui->label_8->setPixmap(pixmap.scaled(ui->label_8->size(),
+        ui->labelPortada->setPixmap(pixmap.scaled(ui->labelPortada->size(),
                                              Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
     }
-        verificarYCrearAlbum(); // Verificar si ya podemos crear el álbum
+    verificarYCrearAlbum(); // Verificar si ya podemos crear el álbum
 
 }
-void HomeWindow_Copy::verificarYCrearAlbum() {
-    QString titulo = ui->lineEdit_2->text().trimmed();
+void ArtistaWindow::verificarYCrearAlbum() {
+    QString titulo = ui->lineEditAlbum->text().trimmed();
 
     // Verificar que tenemos todos los datos necesarios
     if (!titulo.isEmpty() && !rutaPortada.isEmpty() && QFile::exists(rutaPortada)) {
@@ -148,7 +147,7 @@ void HomeWindow_Copy::verificarYCrearAlbum() {
 
     }
 }
-void HomeWindow_Copy::finalizarAlbum() {
+void ArtistaWindow::finalizarAlbum() {
     if (albumActual.canciones.isEmpty()) {
         QMessageBox::warning(this, "Error", "Debe agregar al menos una canción");
         return;
@@ -168,15 +167,15 @@ void HomeWindow_Copy::finalizarAlbum() {
     QMessageBox::information(this, "Exito","Tu album ahora esta disponible en el catalogo!");
 
     // Limpiar para el próximo álbum
-    ui->label_8->clear();
-    ui->lineEdit_2->clear();
+    ui->labelPortada->clear();
+    ui->lineEditAlbum->clear();
     albumActual = Album();
     ui->listaCancionesWidget->clear();
     ui->toolButton_addSong->setEnabled(false);
 }
 
 //Editar Perfil
-void HomeWindow_Copy::EditarPerfil(){
+void ArtistaWindow::EditarPerfil(){
 
     QPixmap avatar(admin->getRutaImagen());
     QPixmap avatarEscalado = avatar.scaled(
@@ -188,44 +187,20 @@ void HomeWindow_Copy::EditarPerfil(){
     ui->editPerfilLbl->setPixmap(avatarEscalado);
     ui->editUserLbl->setText(admin->getNombreUsuario());
     ui->editNomLbl->setText(admin->getNombreReal());
-    ui->editPassLbl->setText("*****");
     ui->editPaisLbl->setText(admin->getPais());
     ui->editGeneroCB->setCurrentText(admin->getGenero());
     ui->editDescLbl->setText(admin->getDescripcion());
 
-    connect(ui->editUploadButton, &QToolButton::clicked, this, [this](){
-    QString rutaImagen = QFileDialog::getOpenFileName(this, "Seleccionar imagen de perfil", "/Users/compu/Pictures/Albums", "Imagenes (*.jpg *.jpeg *.png)");
-
-        if (!rutaImagen.isEmpty()) {
-            QPixmap avatar(rutaImagen);
-
-            // Escalar al tamaño del QLabel
-            QPixmap avatarEscalado = avatar.scaled(
-                ui->editPerfilLbl->size(),
-                Qt::IgnoreAspectRatio,
-                Qt::SmoothTransformation
-                );
-
-            ui->editPerfilLbl->setPixmap(avatarEscalado);
-        }
-    });
-
-
-    connect(ui->editGuardarButton, &QToolButton::clicked, this, [=](){
-
-
-
-    });
-
-
-
+    ui->editPassLbl->setEchoMode(QLineEdit::Password);
+    ui->editPassLbl->setEnabled(false);
+    ui->editPassLbl->setText("********");
 }
 
 
 
 
 //Metodos y botones del MediaPlayer
-void HomeWindow_Copy::updateduration(qint64 duration)
+void ArtistaWindow::updateduration(qint64 duration)
 {
     QString timestr;
     if (duration > 0 && Mduration > 0)
@@ -241,12 +216,12 @@ void HomeWindow_Copy::updateduration(qint64 duration)
     }
 }
 
-void HomeWindow_Copy::on_horizontalSlider_Audio_Volume_valueChanged(int value)
+void ArtistaWindow::on_horizontalSlider_Audio_Volume_valueChanged(int value)
 {
     audioOutput->setVolume(value / 100.0);
 }
 
-void HomeWindow_Copy::on_toolButton_play_clicked()
+void ArtistaWindow::on_toolButton_play_clicked()
 {
     if (!isPaused){
         setIcono(ui->toolButton_play,0xe037,20);
@@ -255,11 +230,11 @@ void HomeWindow_Copy::on_toolButton_play_clicked()
     }else {
         setIcono(ui->toolButton_play,0xe034,20);
         isPaused = false;
-            media->play();
+        media->play();
     }
 }
 
-void HomeWindow_Copy::on_toolButton_Volume_clicked()
+void ArtistaWindow::on_toolButton_Volume_clicked()
 {
     if(!isMuted){
         ui->toolButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolumeMuted));
@@ -272,7 +247,7 @@ void HomeWindow_Copy::on_toolButton_Volume_clicked()
     }
 }
 
-void HomeWindow_Copy::onCancionesFileChanged(const QString &path) {
+void ArtistaWindow::onCancionesFileChanged(const QString &path) {
     Q_UNUSED(path);
 
     loadSongs();
@@ -282,13 +257,13 @@ void HomeWindow_Copy::onCancionesFileChanged(const QString &path) {
     }
 }
 
-void HomeWindow_Copy::durationChanged(qint64 duration)
+void ArtistaWindow::durationChanged(qint64 duration)
 {
     Mduration = duration/1000;
     ui->horizontalSlider_Audio_File_Duration->setMaximum(Mduration);
 }
 
-void HomeWindow_Copy::positionChanged(qint64 progress)
+void ArtistaWindow::positionChanged(qint64 progress)
 {
     if(!ui->horizontalSlider_Audio_File_Duration->isSliderDown())
     {
@@ -299,30 +274,31 @@ void HomeWindow_Copy::positionChanged(qint64 progress)
 
 
 //Metodos y Botones del UI
-void HomeWindow_Copy::setIcono(QToolButton* boton, ushort unicode, int size){
+void ArtistaWindow::setIcono(QToolButton* boton, ushort unicode, int size){
     boton->setText(QChar(unicode));
     boton->setFont(QFont(MaterialIcons, size)); // Tamaño 20
     boton->setStyleSheet("color: white; border: none;");
 }
 
-void HomeWindow_Copy::on_toolButton_Playlist_clicked()
+
+void ArtistaWindow::on_toolButton_Playlist_clicked()
 {
     ui->stackedWidget->setCurrentIndex(1);
 }
 
-void HomeWindow_Copy::on_toolButton_home_clicked()
+void ArtistaWindow::on_toolButton_home_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
 
 }
 
-void HomeWindow_Copy::on_lineEdit_editingFinished()
+void ArtistaWindow::on_lineEdit_editingFinished()
 {
     ui->stackedWidget->setCurrentIndex(4);
 
 }
 
-void HomeWindow_Copy::on_toolButton_limpiar_clicked()
+void ArtistaWindow::on_toolButton_limpiar_clicked()
 {
     albumActual = Album();
     ui->listaCancionesWidget->clear();
@@ -330,7 +306,7 @@ void HomeWindow_Copy::on_toolButton_limpiar_clicked()
 }
 
 
-void HomeWindow_Copy::initComponents()
+void ArtistaWindow::initComponents()
 {
     //Todo lo del mediaplayer
     media = new QMediaPlayer(this);
@@ -346,17 +322,17 @@ void HomeWindow_Copy::initComponents()
 
     audioOutput->setVolume(ui->horizontalSlider_Audio_Volume->value() / 100.0);
 
-    connect(media, &QMediaPlayer::durationChanged, this, &HomeWindow_Copy::durationChanged);
-    connect(media, &QMediaPlayer::positionChanged, this, &HomeWindow_Copy::positionChanged);
+    connect(media, &QMediaPlayer::durationChanged, this, &ArtistaWindow::durationChanged);
+    connect(media, &QMediaPlayer::positionChanged, this, &ArtistaWindow::positionChanged);
 
     ui->horizontalSlider_Audio_File_Duration->setRange(0, media->duration()/1000);
 
-    connect(ui->lineEdit_2, &QLineEdit::editingFinished, this, &HomeWindow_Copy::verificarYCrearAlbum, Qt::UniqueConnection);
-    connect(ui->toolButton_upload, &QToolButton::clicked, this, &HomeWindow_Copy::seleccionarPortada, Qt::UniqueConnection);
-    connect(ui->toolButton_addSong, &QToolButton::clicked, this, &HomeWindow_Copy::initPopup, Qt::UniqueConnection);
-    connect(ui->toolButton_upload_3, &QToolButton::clicked, this, &HomeWindow_Copy::finalizarAlbum, Qt::UniqueConnection);
+    connect(ui->lineEditAlbum, &QLineEdit::editingFinished, this, &ArtistaWindow::verificarYCrearAlbum, Qt::UniqueConnection);
+    connect(ui->toolButton_upload, &QToolButton::clicked, this, &ArtistaWindow::seleccionarPortada, Qt::UniqueConnection);
+    connect(ui->toolButton_addSong, &QToolButton::clicked, this, &ArtistaWindow::initPopup, Qt::UniqueConnection);
+    connect(ui->toolButton_crear, &QToolButton::clicked, this, &ArtistaWindow::finalizarAlbum, Qt::UniqueConnection);
     // Poner el foco en el lineEdit del título
-    ui->lineEdit_2->setFocus();
+    ui->lineEditAlbum->setFocus();
 
 
     // Limpiar datos anteriores
@@ -375,12 +351,34 @@ void HomeWindow_Copy::initComponents()
 
 
     //Componentes UI
-    ui->verticalFrame->setFixedWidth(200);
+    connect(ui->editUploadButton, &QToolButton::clicked, this, [this](){
+        QString rutaImagen = QFileDialog::getOpenFileName(this, "Seleccionar imagen de perfil", "/Users/compu/Pictures/Albums", "Imagenes (*.jpg *.jpeg *.png)");
+
+        if (!rutaImagen.isEmpty()) {
+            QPixmap avatar(rutaImagen);
+
+            // Escalar al tamaño del QLabel
+            QPixmap avatarEscalado = avatar.scaled(
+                ui->editPerfilLbl->size(),
+                Qt::IgnoreAspectRatio,
+                Qt::SmoothTransformation
+                );
+
+            ui->editPerfilLbl->setPixmap(avatarEscalado);
+        }
+    });
+
+
+    connect(ui->editGuardarButton, &QToolButton::clicked, this, [=](){
+
+            //Crear metodo para editar en Cuentas
+
+    });
 
     QPixmap logo;
     logo.load(":/imagenes/logoW.png");
-    QPixmap logoEscalado = logo.scaled(ui->label_5->size(),Qt::KeepAspectRatioByExpanding,Qt::SmoothTransformation);
-    ui->label_5->setPixmap(logoEscalado);
+    QPixmap logoEscalado = logo.scaled(ui->labelLogo->size(),Qt::KeepAspectRatioByExpanding,Qt::SmoothTransformation);
+    ui->labelLogo->setPixmap(logoEscalado);
 
 
 
@@ -451,6 +449,28 @@ void HomeWindow_Copy::initComponents()
     ui->btnPerfil->setPopupMode(QToolButton::InstantPopup);
     conectarMenu();
 
+    // Conectar un botón que ya deberías tener en tu UI
+    connect(ui->btnCambiarPass, &QPushButton::clicked, this, [this]() {
+        bool ok;
+        QString currentPassword = QInputDialog::getText(
+            this,
+            "Verificar contraseña",
+            "Ingrese su contraseña actual:",
+            QLineEdit::Password,
+            "",
+            &ok
+            );
+
+        if (ok && manejo->autenticar(usuario->getNombreUsuario(),currentPassword)!=nullptr) {
+            ui->editPassLbl->setEnabled(true);
+            ui->editPassLbl->setText("");
+            ui->editPassLbl->setFocus();
+        }
+        else if (ok) {
+            QMessageBox::warning(this, "Error", "Contraseña incorrecta");
+        }
+    });
+
     setIcono(ui->toolButton_Playlist,0xe03b,20); //0xe03b
     setIcono(ui->toolButton_home,0xe88a,20); //home 0xe88a
     setIcono(ui->toolButton_play,0xe037,20);
@@ -458,7 +478,7 @@ void HomeWindow_Copy::initComponents()
     setIcono(ui->toolButton_next,0xe044,20);
     setIcono(ui->toolButton_random,0xe043,20);
     setIcono(ui->toolButton_loop,0xe040,20);
-    setIcono(ui->toolButton_fav,0xe87d,20);
+    //setIcono(ui->toolButton_fav,0xe87d,20);
     setIcono(ui->toolButton_upload,0xe413,20);
     setIcono(ui->editUploadButton,0xe413,20); //e43e
     setIcono(ui->toolButton_addSong,0xe7e5,20);
@@ -478,10 +498,11 @@ void HomeWindow_Copy::initComponents()
     */
 }
 
-void HomeWindow_Copy::conectarMenu(){
+void ArtistaWindow::conectarMenu(){
     connect(editarDatos, &QAction::triggered, this, [=]() {
         qDebug() << "Editar datos";
         ui->stackedWidget->setCurrentIndex(2);
+        EditarPerfil();
     });
 
     connect(verEstadisticas, &QAction::triggered, this, [this]() {
@@ -507,7 +528,7 @@ void HomeWindow_Copy::conectarMenu(){
 
 }
 
-void HomeWindow_Copy::initPopup() {
+void ArtistaWindow::initPopup() {
     qDebug() << "Iniciando popup";
 
     QDialog* popup = new QDialog(this);
@@ -592,3 +613,4 @@ void HomeWindow_Copy::initPopup() {
     popup->exec();  // ← Si después de esto no hay logs, el programa muere aquí o en el botón aceptar
     qDebug() << "Popup cerrado correctamente";
 }
+

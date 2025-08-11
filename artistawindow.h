@@ -1,5 +1,5 @@
-#ifndef HOMEWINDOW_COPY_H
-#define HOMEWINDOW_COPY_H
+#ifndef ARTISTAWINDOW_H
+#define ARTISTAWINDOW_H
 
 #include <QMainWindow>
 #include <QToolButton>
@@ -7,13 +7,14 @@
 #include <QAudioOutput>   // For Qt 6
 #include <QGridLayout>
 #include <QMetaType>
+#include <QLineEdit>
 #include <QFileSystemWatcher>
 
 #include "cuentas.h"
 #include "cancion.h"
 
 namespace Ui {
-class HomeWindow_Copy;
+class ArtistaWindow;
 }
 
 struct Song {
@@ -24,15 +25,16 @@ struct Song {
 };
 Q_DECLARE_METATYPE(Song)
 
-class HomeWindow_Copy : public QMainWindow
+class ArtistaWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit HomeWindow_Copy(QWidget *parent, Cuentas& manejo);
-    ~HomeWindow_Copy();
+    explicit ArtistaWindow(QWidget *parent,Cuentas& manejo);
+    ~ArtistaWindow();
 
     void setIcono(QToolButton* boton, ushort unicode, int size);
+    void setupPasswordLineEdit(QLineEdit *passwordEdit);
     void conectarMenu();
     void initPopup();
     void actualizarListaCanciones();
@@ -41,32 +43,8 @@ public:
     void finalizarAlbum();
     void EditarPerfil();
 
-private slots:
-    void on_toolButton_Playlist_clicked();
-
-    void on_toolButton_home_clicked();
-
-    void on_lineEdit_editingFinished();
-
-    void loadSongs();
-    void playSong(const Cancion& cancion);
-
-    void durationChanged(qint64 duration);
-
-    void positionChanged(qint64 progress);
-
-    void on_horizontalSlider_Audio_Volume_valueChanged(int value);
-
-    void on_toolButton_play_clicked();
-
-    void on_toolButton_Volume_clicked();
-
-    void onCancionesFileChanged(const QString &path);
-
-    void on_toolButton_limpiar_clicked();
-
 private:
-    Ui::HomeWindow_Copy *ui;
+    Ui::ArtistaWindow *ui;
     Cuentas* manejo;
     QMediaPlayer *media;
     QAudioOutput* audioOutput;
@@ -103,7 +81,30 @@ private:
 
     Album albumActual; // Para guardar temporalmente los datos del álbum
 
+private slots:
+    void on_toolButton_Playlist_clicked();
+
+    void on_toolButton_home_clicked();
+
+    void on_lineEdit_editingFinished();
+
+    void loadSongs();
+
+    void playSong(const Cancion& cancion);
+
+    void durationChanged(qint64 duration);
+
+    void positionChanged(qint64 progress);
+
+    void on_horizontalSlider_Audio_Volume_valueChanged(int value);
+
+    void on_toolButton_play_clicked();
+
+    void on_toolButton_Volume_clicked();
+
+    void onCancionesFileChanged(const QString &path);
+
+    void on_toolButton_limpiar_clicked();
 };
 
-#endif // HOMEWINDOW_COPY_H
-
+#endif // ARTISTAWINDOW_H

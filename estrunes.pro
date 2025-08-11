@@ -13,11 +13,11 @@ SOURCES += \
     Administrador.cpp \
     Estandar.cpp \
     Usuario.cpp \
+    artistawindow.cpp \
     biblioteca.cpp \
     cancion.cpp \
     cuentas.cpp \
     homewindow.cpp \
-    homewindow_copy.cpp \
     main.cpp \
     mainwindow.cpp \
     songwidget.cpp
@@ -26,17 +26,17 @@ HEADERS += \
     Administrador.h \
     Estandar.h \
     Usuario.h \
+    artistawindow.h \
     biblioteca.h \
     cancion.h \
     cuentas.h \
     homewindow.h \
-    homewindow_copy.h \
     mainwindow.h \
     songwidget.h
 
 FORMS += \
+    artistawindow.ui \
     homewindow.ui \
-    homewindow_copy.ui \
     mainwindow.ui
 
 # Default rules for deployment.

@@ -26,6 +26,8 @@ public:
 private:
     Ui::MainWindow *ui;
     Cuentas* manejo;
+    bool isCensurada;
+
     void initPopup();
     void resetearCampos();
 private slots:
@@ -48,5 +50,7 @@ private slots:
     void on_crearButton2_clicked();
 
     void on_backButton_3_clicked();
+    void on_toolButton_clicked();
+    void on_toolButton_2_clicked();
 };
 #endif // MAINWINDOW_H
