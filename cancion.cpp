@@ -1,29 +1,16 @@
-#include "cancion.h"
-#include <QFile>
+#include "Cancion.h"
 #include <QDataStream>
-#include <QIODevice>
 
-Cancion::Cancion() : id(0), estado(true), fechaRegistro(QDateTime::currentDateTime()) {}
 
-Cancion::Cancion(const QString& titulo, const QString& genero, const QString& categoria,
-                 const QString& rutaPortada, const QString& rutaAudio, const QString& artista) :
-    titulo(titulo),
-    artista(artista),
-    genero(genero),
-    categoria(categoria),
-    rutaPortada(rutaPortada),
-    estado(true),
-    rutaAudio(rutaAudio),
-    fechaRegistro(QDateTime::currentDateTime())
-{
-    // Generar ID único usando hash de los datos de la canción
-    QString hashData = titulo + artista + genero + categoria + rutaAudio + fechaRegistro.toString(Qt::ISODate);
-    QByteArray hash = QCryptographicHash::hash(hashData.toUtf8(), QCryptographicHash::Sha1);
-    id = qAbs(qHash(hash));
+Cancion::Cancion() : id(0), duracion(0), fechaRegistro(QDateTime::currentDateTime()) {}
 
-    // TODO: Calcular duración del archivo de audio (puedes implementar esto después)
-    duracion = "00:00"; // Valor temporal
-}
+Cancion::Cancion(int id, const QString& titulo, const QString& artista,
+                 const QString& album, const QString& genero, const QString& categoria,
+                 const QString& rutaAudio, const QString& rutaPortada) :
+    id(id), titulo(titulo), artista(artista), album(album),
+    genero(genero), categoria(categoria), rutaAudio(rutaAudio),
+    rutaPortada(rutaPortada), estado(true),fechaRegistro(QDateTime::currentDateTime()) {}
+
 
 void Cancion::guardarEnArchivo(const QString& nombreArchivo) const {
     QFile file(nombreArchivo);
@@ -51,68 +38,24 @@ QList<Cancion> Cancion::cargarDesdeArchivo(const QString& nombreArchivo) {
     return canciones;
 }
 
-bool Cancion::existeCancion(int id, const QString& nombreArchivo) {
-    QList<Cancion> canciones = cargarDesdeArchivo(nombreArchivo);
-    for (const Cancion& cancion : canciones) {
-        if (cancion.getId() == id) {
-            return true;
-        }
-    }
-    return false;
+
+// Serialización
+void Cancion::escribirEnStream(QDataStream& stream) const {
+    stream << id << titulo << artista << album << genero
+           << duracion << estado << rutaAudio << rutaPortada << fechaRegistro;
 }
 
-bool Cancion::eliminarCancion(int id, const QString& nombreArchivo) {
-    QList<Cancion> canciones = cargarDesdeArchivo(nombreArchivo);
-    QList<Cancion> cancionesActualizadas;
-    bool encontrada = false;
-
-    for (Cancion cancion : canciones) {
-        if (cancion.getId() != id) {
-            cancionesActualizadas.append(cancion);
-        } else {
-            encontrada = true;
-        }
-    }
-
-    if (encontrada) {
-        QFile file(nombreArchivo);
-        if (file.open(QIODevice::WriteOnly)) {
-            QDataStream out(&file);
-            for (const Cancion& cancion : cancionesActualizadas) {
-                out << cancion;
-            }
-            file.close();
-            return true;
-        }
-    }
-
-    return false;
+void Cancion::leerDesdeStream(QDataStream& stream) {
+    stream >> id >> titulo >> artista >> album >> genero
+        >> duracion >> estado >> rutaAudio >> rutaPortada >> fechaRegistro;
 }
 
 QDataStream& operator<<(QDataStream& out, const Cancion& cancion) {
-    out << cancion.id
-        << cancion.titulo
-        << cancion.artista
-        << cancion.genero
-        << cancion.categoria
-        << cancion.duracion
-        << cancion.rutaPortada
-        << cancion.estado
-        << cancion.rutaAudio
-        << cancion.fechaRegistro;
+    cancion.escribirEnStream(out);
     return out;
 }
 
 QDataStream& operator>>(QDataStream& in, Cancion& cancion) {
-    in >> cancion.id
-        >> cancion.titulo
-        >> cancion.artista
-        >> cancion.genero
-        >> cancion.categoria
-        >> cancion.duracion
-        >> cancion.rutaPortada
-        >> cancion.estado
-        >> cancion.rutaAudio
-        >> cancion.fechaRegistro;
+    cancion.leerDesdeStream(in);
     return in;
 }

@@ -13,6 +13,9 @@ SOURCES += \
     Administrador.cpp \
     Estandar.cpp \
     Usuario.cpp \
+    album.cpp \
+    albumdetailwindow.cpp \
+    albumwidget.cpp \
     artistawindow.cpp \
     biblioteca.cpp \
     cancion.cpp \
@@ -20,18 +23,23 @@ SOURCES += \
     homewindow.cpp \
     main.cpp \
     mainwindow.cpp \
+    playlist.cpp \
     songwidget.cpp
 
 HEADERS += \
     Administrador.h \
     Estandar.h \
     Usuario.h \
+    album.h \
+    albumdetailwindow.h \
+    albumwidget.h \
     artistawindow.h \
     biblioteca.h \
     cancion.h \
     cuentas.h \
     homewindow.h \
     mainwindow.h \
+    playlist.h \
     songwidget.h
 
 FORMS += \

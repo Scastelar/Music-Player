@@ -3,16 +3,18 @@
 
 #include <QString>
 #include <QDateTime>
-#include <QCryptographicHash>
+#include <QDataStream>
+#include <QFile>
 
 class Cancion {
 private:
     int id;
     QString titulo;
     QString artista;
+    QString album;
     QString genero;
     QString categoria;
-    QString duracion;
+    int duracion;
     QString rutaPortada;
     bool estado;
     QString rutaAudio;
@@ -22,38 +24,43 @@ public:
     // Constructor vacío para serialización
     Cancion();
 
-    // Constructor para creación de nuevas canciones
-    Cancion(const QString& titulo, const QString& genero, const QString& categoria,
-            const QString& rutaPortada, const QString& rutaAudio, const QString& artista);
+    // Constructor para creación de nuevas canciones    
+    Cancion(int id, const QString& titulo, const QString& artista,
+            const QString& album, const QString& genero, const QString& categoria,
+            const QString& rutaArchivo = "", const QString& rutaImagen = "");
+
 
     // Getters
     int getId() const { return id; }
     QString getTitulo() const { return titulo; }
     QString getArtista() const { return artista; }
+    QString getAlbum() const { return album; }
     QString getGenero() const { return genero; }
     QString getCategoria() const { return categoria; }
-    QString getDuracion() const { return duracion; }
+    int getDuracion() const { return duracion; }
     QString getRutaPortada() const { return rutaPortada; }
     bool getEstado() const { return estado; }
     QString getRutaAudio() const { return rutaAudio; }
     QDateTime getFechaRegistro() const { return fechaRegistro; }
 
     // Setters
+    void setId(const int& newID){ id = newID; }
     void setTitulo(const QString& newTitulo) { titulo = newTitulo; }
     void setGenero(const QString& newGenero) { genero = newGenero; }
+    void setAlbum(const QString& album){ this->album = album; }
     void setCategoria(const QString& newCategoria) { categoria = newCategoria; }
-    void setDuracion(const QString& newDuracion) { duracion = newDuracion; }
+    void setDuracion(const int& newDuracion) { duracion = newDuracion; }
     void setRutaPortada(const QString& newRuta) { rutaPortada = newRuta; }
     void setEstado(bool newEstado) { estado = newEstado; }
     void setRutaAudio(const QString& newRuta) { rutaAudio = newRuta; }
 
-    // Métodos para serialización
+
     void guardarEnArchivo(const QString& nombreArchivo = "canciones.dat") const;
     static QList<Cancion> cargarDesdeArchivo(const QString& nombreArchivo = "canciones.dat");
 
-    // Métodos para operaciones con el archivo
-    static bool existeCancion(int id, const QString& nombreArchivo = "canciones.dat");
-    static bool eliminarCancion(int id, const QString& nombreArchivo = "canciones.dat");
+    // Métodos de serialización
+    void escribirEnStream(QDataStream& stream) const;
+    void leerDesdeStream(QDataStream& stream);
 
     // Sobrecarga de operadores para serialización
     friend QDataStream& operator<<(QDataStream& out, const Cancion& cancion);

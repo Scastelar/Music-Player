@@ -4,17 +4,22 @@
 
 #include <QWidget>
 #include <QLabel>
-#include <QPixmap>
-#include <QPushButton>
 #include "cancion.h"
 
 class SongWidget : public QWidget {
     Q_OBJECT
+
 public:
     explicit SongWidget(const Cancion& cancion, QWidget *parent = nullptr);
 
 signals:
-    void songClicked(const Cancion& cancion);
+    void songClicked(const Cancion &cancion);
+    void editSongRequested(int cancionId);
+    void deleteSongRequested(int cancionId);
+
+private slots:
+    void onEditSong();
+    void onDeleteSong();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;

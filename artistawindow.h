@@ -6,12 +6,10 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>   // For Qt 6
 #include <QGridLayout>
-#include <QMetaType>
 #include <QLineEdit>
 #include <QFileSystemWatcher>
 
 #include "cuentas.h"
-#include "cancion.h"
 
 namespace Ui {
 class ArtistaWindow;
@@ -22,8 +20,12 @@ struct Song {
     QString genero;
     QString categoria;
     QString rutaAudio;
+
+    // Constructor para facilitar la creación
+    Song(const QString& t = "", const QString& g = "",
+         const QString& c = "", const QString& r = "")
+        : titulo(t), genero(g), categoria(c), rutaAudio(r) {}
 };
-Q_DECLARE_METATYPE(Song)
 
 class ArtistaWindow : public QMainWindow
 {
@@ -42,12 +44,15 @@ public:
     void verificarYCrearAlbum();
     void finalizarAlbum();
     void EditarPerfil();
+    void VistaPerfil();
+
 
 private:
     Ui::ArtistaWindow *ui;
     Cuentas* manejo;
     QMediaPlayer *media;
     QAudioOutput* audioOutput;
+    QString currentSongPath;
 
     QFileSystemWatcher *fileWatcher;
 
@@ -73,13 +78,19 @@ private:
     qint64 Mduration;
     QString rutaPortada = "";
 
-    struct Album {
+    QString rutaImagen = "";
+
+    struct AlbumTemp {
         QString titulo;
         QString portada;
         QList<Song> canciones;
     };
 
-    Album albumActual; // Para guardar temporalmente los datos del álbum
+    AlbumTemp albumActual; // Para guardar temporalmente los datos del álbum
+
+    QList<Cancion*> m_cancionesAlbumActual;
+    int m_indiceAlbumActual = -1;
+    Album* m_albumActual = nullptr;
 
 private slots:
     void on_toolButton_Playlist_clicked();
@@ -105,6 +116,34 @@ private slots:
     void onCancionesFileChanged(const QString &path);
 
     void on_toolButton_limpiar_clicked();
+
+    void cargarAlbumesUsuario();
+
+    void mostrarDetalleAlbum(Album* album);
+
+    void onCancionSeleccionada(Cancion* cancion);
+
+    void reproducirCancion(Cancion* cancion);
+
+    void reproducirAlbumCompleto(Album* album, int indiceInicial);
+
+    void onCancionTerminada();
+
+    void handleMediaStatusChanged(QMediaPlayer::MediaStatus status);
+
+    void handleMediaError(QMediaPlayer::Error error, const QString &errorString);
+
+    void on_toolButton_next_clicked();
+
+    void on_toolButton_prev_clicked();
+
+    void handlePlaybackStateChanged(QMediaPlayer::PlaybackState state);
+
+    void editarCancion(int cancionId);
+    void eliminarCancion(int cancionId);
+
+
+
 };
 
 #endif // ARTISTAWINDOW_H

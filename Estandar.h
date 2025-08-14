@@ -37,25 +37,14 @@ public:
     Estandar(const QString& username, const QString& password,
              const QString& nombreReal, const QString& email);
 
-
-    // Métodos para biblioteca
-    void agregarCancionABiblioteca(int cancionId);
-
-    // Métodos para listas de reproducción
-    int generarIdPlaylistUnico();
-    void crearNuevaListaReproduccion(const QString& nombreLista);
-    void agregarCancionALista(int idLista, int cancionId);
-
-    // Métodos para favoritos
-    void agregarCancionFavorita(int cancionId);
-    bool eliminarCancionFavorita(int cancionId);
-    QList<Favorito> obtenerCancionesFavoritas() const;
-    bool esCancionFavorita(int cancionId) const;
-
-    // Getters
+    //Metodos propios
     QString getEmail() const { return email; }
+    void setEmail(const QString& correo){ email = correo; }
 
     // Serialización
+    friend QDataStream& operator<<(QDataStream& out, const Estandar& estandar);
+    friend QDataStream& operator>>(QDataStream& in, Estandar& estandar);
+
     void escribirEnStream(QDataStream& stream) const override;
     void leerDesdeStream(QDataStream& stream) override;
 };

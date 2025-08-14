@@ -2,12 +2,13 @@
 #include <QDataStream>
 #include <stdexcept>
 
-Administrador::Administrador(const QString& username, const QString& password, const QString& pais, const QString& genero, const QString& desc) :
+Administrador::Administrador(const QString& username, const QString& password,const QString& nombre, const QString& pais, const QString& genero, const QString& desc) :
     Usuario(username, password)
     , pais(pais), genero(genero), descripcion(desc)
 
 {
     tipo="ADMIN";
+    nombreReal = nombre;
 }
 
 void Administrador::escribirEnStream(QDataStream& stream) const {
@@ -20,17 +21,12 @@ void Administrador::leerDesdeStream(QDataStream& stream) {
     stream >> pais >> genero >> descripcion  >> tipo;
 }
 
-void Administrador::agregarCancionCatalogo(const QString& titulo, const QString& genero,
-                                           const QString& categoria, const QString& rutaPortada,
-                                           const QString& rutaAudio) {
-    Cancion nuevaCancion(titulo, genero, categoria, rutaPortada, rutaAudio, this->getNombreUsuario());
-    nuevaCancion.guardarEnArchivo("canciones.dat");
+QDataStream& operator<<(QDataStream& out, const Administrador& usuario) {
+    usuario.escribirEnStream(out);
+    return out;
 }
 
-QList<Cancion> Administrador::obtenerCancionesCatalogo() const {
-    return Cancion::cargarDesdeArchivo("canciones.dat");
-}
-
-bool Administrador::eliminarCancionCatalogo(int idCancion) {
-    return Cancion::eliminarCancion(idCancion, "canciones.dat");
+QDataStream& operator>>(QDataStream& in, Administrador& usuario) {
+    usuario.leerDesdeStream(in);
+    return in;
 }

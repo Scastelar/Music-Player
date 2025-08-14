@@ -127,26 +127,6 @@
             <widget class="QWidget" name="horizontalWidget_19" native="true">
              <layout class="QHBoxLayout" name="horizontalLayout_25">
               <item>
-               <widget class="QToolButton" name="btnFilterPlaylist">
-                <property name="styleSheet">
-                 <string notr="true"/>
-                </property>
-                <property name="text">
-                 <string>Playlists</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QToolButton" name="btnFilterArtist">
-                <property name="styleSheet">
-                 <string notr="true"/>
-                </property>
-                <property name="text">
-                 <string>Artistas</string>
-                </property>
-               </widget>
-              </item>
-              <item>
                <widget class="QToolButton" name="btnFilterAlbum">
                 <property name="styleSheet">
                  <string notr="true"/>
@@ -307,7 +287,7 @@
               </size>
              </property>
              <property name="currentIndex">
-              <number>2</number>
+              <number>0</number>
              </property>
              <widget class="QWidget" name="page_7">
               <widget class="QScrollArea" name="scrollArea">
@@ -1474,7 +1454,7 @@ background-color: rgb(186, 186, 186);</string>
                  <x>60</x>
                  <y>40</y>
                  <width>171</width>
-                 <height>151</height>
+                 <height>161</height>
                 </rect>
                </property>
                <property name="autoFillBackground">
@@ -1493,8 +1473,8 @@ background-color: rgb(186, 186, 186);</string>
               <widget class="QLabel" name="USERlabel">
                <property name="geometry">
                 <rect>
-                 <x>70</x>
-                 <y>200</y>
+                 <x>60</x>
+                 <y>210</y>
                  <width>171</width>
                  <height>26</height>
                 </rect>
@@ -1506,10 +1486,14 @@ background-color: rgb(186, 186, 186);</string>
                 </size>
                </property>
                <property name="styleSheet">
-                <string notr="true">font: 14pt;</string>
+                <string notr="true">font: 700 14pt;
+</string>
                </property>
                <property name="text">
                 <string>Nombre Artistico</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
               <widget class="QListWidget" name="listWidget_8">
@@ -1538,6 +1522,9 @@ background-color: rgb(186, 186, 186);</string>
                </item>
               </widget>
               <widget class="QToolButton" name="toolButton_upload_8">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
                <property name="geometry">
                 <rect>
                  <x>250</x>
@@ -1581,7 +1568,7 @@ background-color: rgb(186, 186, 186);</string>
                 <rect>
                  <x>340</x>
                  <y>210</y>
-                 <width>171</width>
+                 <width>291</width>
                  <height>26</height>
                 </rect>
                </property>
@@ -1627,6 +1614,44 @@ background-color: rgb(186, 186, 186);</string>
                  </item>
                 </layout>
                </widget>
+              </widget>
+              <widget class="QLabel" name="USERlabel_2">
+               <property name="geometry">
+                <rect>
+                 <x>40</x>
+                 <y>250</y>
+                 <width>211</width>
+                 <height>26</height>
+                </rect>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font: 9pt;</string>
+               </property>
+               <property name="text">
+                <string>Nombre Real - Pais - Genero</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+              <widget class="QTextBrowser" name="DESCtext">
+               <property name="geometry">
+                <rect>
+                 <x>60</x>
+                 <y>290</y>
+                 <width>171</width>
+                 <height>81</height>
+                </rect>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color: rgb(255, 255, 255);</string>
+               </property>
               </widget>
              </widget>
             </widget>

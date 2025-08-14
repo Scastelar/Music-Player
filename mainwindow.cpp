@@ -191,8 +191,9 @@ void MainWindow::on_crearButton1_clicked()
     } else {
         manejo->crearUsuarioNormal(nombre,password,nombreReal,email,img);
         QMessageBox::information(nullptr,"Exito","Tu cuenta ha sido registrada!",QMessageBox::Ok);
-        resetearCampos();
+        manejo->verificarAutenticacion(nombre,password);
         Usuario* userActual = manejo->autenticar(nombre,password);
+        resetearCampos();
         manejo->setIdUsuarioActual(userActual->getId());
         HomeWindow* h = new HomeWindow(nullptr,*manejo);
         this->close();
@@ -219,43 +220,55 @@ void MainWindow::on_crearButton2_clicked()
     if (manejo->existeUsuario(nombre)){
         QMessageBox::critical(nullptr,"Error","Este usuario ya existe, elige otro nombre",QMessageBox::Ok);
     } else {
-        manejo->crearArtista(nombre,password,pais,genero,nombreReal,desc,img);
+        manejo->crearArtista(nombre,password,pais,genero,desc,nombreReal,img);
         QMessageBox::information(nullptr,"Exito","Tu cuenta ha sido registrada!",QMessageBox::Ok);
-        resetearCampos();
+        manejo->verificarAutenticacion(nombre,password);
         Usuario* userActual = manejo->autenticar(nombre,password);
+        resetearCampos();
+        // Primero verifica si userActual es nullptr
+        if (userActual == nullptr || !userActual->estaActivo()){
+            QMessageBox::critical(nullptr,"Error","Usuario invalido.",QMessageBox::Ok);
+            return;
+        } else {
         manejo->setIdUsuarioActual(userActual->getId());
         ArtistaWindow* h = new ArtistaWindow(nullptr,*manejo);
         this->close();
         h->show();
+        }
     }
 
 }
 
 void MainWindow::on_loginButton_2_clicked()
 {
-    QString user = ui->logLbl->text().toLower();
+    QString user = ui->logLbl->text().toLower();  // Verifica que estos sean los widgets correctos
     QString pass = ui->logLbl2->text().toLower();
 
     if (user.isEmpty() || pass.isEmpty()){
         QMessageBox::critical(nullptr,"Error","Debes llenar los campos necesarios",QMessageBox::Ok);
         return;
     } else {
+        manejo->verificarAutenticacion(user,pass);
         Usuario* userActual = manejo->autenticar(user,pass);
-        manejo->setIdUsuarioActual(userActual->getId());
-        if (userActual==nullptr || !userActual->estaActivo()){
+
+        // Primero verifica si userActual es nullptr
+        if (userActual == nullptr || !userActual->estaActivo()){
             QMessageBox::critical(nullptr,"Error","Usuario invalido.",QMessageBox::Ok);
             return;
         } else {
+            // Solo ahora que sabemos que userActual es válido, establecemos el ID
+            manejo->setIdUsuarioActual(userActual->getId());
+
             QMessageBox::information(nullptr,"yay","Ingresaste!",QMessageBox::Ok);
 
             if (userActual->getTipo()=="ADMIN"){
                 ArtistaWindow* h = new ArtistaWindow(nullptr,*manejo);
                 this->close();
                 h->show();
-            }else {
-            HomeWindow* h = new HomeWindow(nullptr,*manejo);
-             this->close();
-            h->show();
+            } else {
+                HomeWindow* h = new HomeWindow(nullptr,*manejo);
+                this->close();
+                h->show();
             }
         }
     }
