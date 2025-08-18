@@ -105,7 +105,6 @@ private slots:
 
     void loadSongs(const QString &genero);
 
-    void loadSongs();
 
     void playSong(Cancion& cancion);
 

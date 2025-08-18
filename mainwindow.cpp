@@ -51,6 +51,9 @@ MainWindow::MainWindow(QWidget *parent, Cuentas& manejo)
             background-color: white;
             color: rgb(40,40,40);
         }
+        QMessageBox {
+
+        }
     )";
         style.replace("FONT", Montserrat);
         this->setStyleSheet(style);
@@ -300,9 +303,6 @@ void MainWindow::on_loginButton_2_clicked()
         } else {
             // Solo ahora que sabemos que userActual es válido, establecemos el ID
             manejo->setIdUsuarioActual(userActual->getId());
-
-            QMessageBox::information(nullptr,"yay","Ingresaste!",QMessageBox::Ok);
-
             if (userActual->getTipo()=="ADMIN"){
                 ArtistaWindow* h = new ArtistaWindow(nullptr,*manejo);
                 this->close();

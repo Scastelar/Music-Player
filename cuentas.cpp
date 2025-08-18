@@ -515,7 +515,7 @@ bool Cuentas::crearAlbum(int userId, const QString& nombre, const QString& porta
     albumes[nuevoId] = nuevoAlbum;
     albumesPorTitulo[nombre].append(nuevoId);
     albumesPorUsuario[userId].append(nuevoId);
-    albumesPorTipo[nuevoAlbum->getTipoString()].append(nuevoId);
+    //albumesPorTipo[nuevoAlbum->getTipoString()].append(nuevoId);
 
     // Guardar en archivo
     QFile file(ARCHIVO_ALBUMES);
@@ -552,6 +552,7 @@ bool Cuentas::agregarCancionAlbum(int albumId, const Cancion& cancion) {
     }
 
     albumes[albumId]->agregarCancion(cancionId);
+    albumesPorTipo[albumes[albumId]->getTipoString()].append(albumId);
     guardarAlbumesEnArchivo();
     guardarCancionesEnArchivo();
     return true;

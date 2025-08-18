@@ -45,7 +45,7 @@ ArtistaWindow::ArtistaWindow(QWidget *parent,Cuentas& manejo)
     isMuted = false;
     setIcono(ui->toolButton_play, 0xe037, 20); // Icono de play inicial
 
-    loadSongs();
+    loadSongs("");
     initComponents();
     cargarAlbumesUsuario("");
 
@@ -270,40 +270,6 @@ void ArtistaWindow::reproducirAlbumCompleto(const QList<Cancion*>& canciones, in
     }
 }
 
-void ArtistaWindow::loadSongs()
-{
-    clearGrid();
-
-    canciones.clear();
-    // Buscar canciones del artista actual usando el índice secundario
-    QList<Cancion*> temp = manejo->buscarCancionesPorArtista(usuario->getNombreUsuario());
-
-    if(temp.isEmpty()) {
-        QLabel *emptyLabel = new QLabel("No hay canciones disponibles");
-        emptyLabel->setStyleSheet("color: #777; font-size: 16px;");
-        ui->gridLayout_5->addWidget(emptyLabel, 0, 0, Qt::AlignCenter);
-        return;
-    }
-
-    for(Cancion* ptr : temp) {
-        canciones.append(*ptr);  // Hacemos una copia
-    }
-
-    // Calcular número de columnas basado en el ancho del gridWidget
-    int columnCount = qMax(1, ui->scrollArea->width() / 200);
-
-    // Añadir canciones al grid
-    for(int i = 0; i < canciones.size(); ++i) {
-        SongWidget *songWidget = new SongWidget(canciones[i],this);
-        connect(songWidget, &SongWidget::songClicked, this, &ArtistaWindow::playSong);
-        connect(songWidget, &SongWidget::editSongRequested, this, &ArtistaWindow::editarCancion);
-        connect(songWidget, &SongWidget::deleteSongRequested, this, &ArtistaWindow::eliminarCancion);
-
-        int row = i / columnCount;
-        int col = i % columnCount;
-        ui->gridLayout_5->addWidget(songWidget, row, col, Qt::AlignCenter);
-    }
-}
 
 
 void ArtistaWindow::loadSongs(const QString &genero)
@@ -323,9 +289,11 @@ void ArtistaWindow::loadSongs(const QString &genero)
         for (Cancion* c : cancionesGenero) {
             if (c->getArtista() == usuario->getNombreUsuario()) {
                 cancionesFiltradas.append(c);
+                qDebug() << "Artista del album == usuario?" << c->getArtista()<< "==" << usuario->getNombreUsuario();
             }
         }
     }
+
 
     if (cancionesFiltradas.isEmpty()) {
         QLabel *emptyLabel = new QLabel("No hay canciones disponibles");
@@ -333,6 +301,9 @@ void ArtistaWindow::loadSongs(const QString &genero)
         ui->gridLayout_5->addWidget(emptyLabel, 0, 0, Qt::AlignCenter);
         return;
     }
+
+    qDebug() << "Canciones filtradas:" << cancionesFiltradas.size();
+
 
     // Calcular columnas
     int columnCount = qMax(1, ui->scrollArea->width() / 200);
@@ -361,20 +332,26 @@ void ArtistaWindow::cargarAlbumesUsuario(const QString& tipo) {
         // Sin filtro → mostrar todos del artista actual
         albumesFiltrados = manejo->buscarAlbumesPorArtista(usuario->getId());
     } else {
-        // Buscar por género
+        // Buscar por tipo
         QList<Album*> albumesTipo = manejo->buscarAlbumesPorTipo(tipo);
 
         // Filtrar por artista actual
         for (Album* a : albumesTipo) {
             if (a->getIdArtista() == usuario->getId()) {
                 albumesFiltrados.append(a);
+                qDebug() << "ArtistID del album == usuario?" << a->getIdArtista()<< "==" << usuario->getId();
             }
         }
     }
 
-    for (Album* album : albumesFiltrados) {
-        AlbumWidget* albumWidget = new AlbumWidget(*album, manejo); // Pasamos cuentas
 
+    qDebug() << "Álbumes filtrados:" << albumesFiltrados.size();
+
+    for (Album* album : albumesFiltrados) {
+        //SongWidget *songWidget = new SongWidget(album,this);
+        //ui->HAlbums->addWidget(songWidget,0,Qt::AlignCenter);
+
+        AlbumWidget* albumWidget = new AlbumWidget(*album, manejo); // Pasamos cuentas
         QListWidgetItem* item = new QListWidgetItem();
         item->setSizeHint(albumWidget->sizeHint());
 
@@ -509,7 +486,7 @@ void ArtistaWindow::finalizarAlbum() {
     }
 
     QMessageBox::information(this, "Exito","Tu album ahora esta disponible en el catalogo!");
-    loadSongs();
+    loadSongs("");
     cargarAlbumesUsuario("");
 
     // Limpiar para el próximo álbum
@@ -781,7 +758,7 @@ void ArtistaWindow::VistaPerfil(){
 void ArtistaWindow::onCancionesFileChanged(const QString &path) {
     Q_UNUSED(path);
 
-    loadSongs();
+    loadSongs("");
 
     if (QFile::exists(path) && !fileWatcher->files().contains(path)) {
         fileWatcher->addPath(path);
@@ -806,7 +783,7 @@ void ArtistaWindow::on_toolButton_Playlist_clicked()
 void ArtistaWindow::on_toolButton_home_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
-    loadSongs();
+    loadSongs("");
     cargarAlbumesUsuario("");
 
 }
@@ -867,6 +844,7 @@ void ArtistaWindow::on_toolButton_addSong_clicked()
         QString genero = player.metaData().value(QMediaMetaData::Genre).toString();
         int duracion = player.metaData().value(QMediaMetaData::Duration).toInt();
         QDateTime fecha = player.metaData().value(QMediaMetaData::Date).toDateTime();
+        QString portada = player.metaData().value(QMediaMetaData::CoverArtImage).toString();
 
         QString categoria = "Recomendado";
 
@@ -875,6 +853,7 @@ void ArtistaWindow::on_toolButton_addSong_clicked()
         if (album.isEmpty()) album = "-";
         if (genero.isEmpty()) genero = "-";
         if (genero == "Clasica")categoria = "Instrumental";
+        if (portada.isEmpty()) portada = albumActual.portada;
 
             Cancion nuevaCancion(
             0,                           //Como es una cancion temporal no importa el ID
@@ -884,7 +863,7 @@ void ArtistaWindow::on_toolButton_addSong_clicked()
             genero,
             categoria,
             filePath,
-            albumActual.portada
+            portada
             );
 
             nuevaCancion.setfechaRegistro(fecha);
@@ -909,22 +888,21 @@ void ArtistaWindow::initComponents()
 
     connect(ui->lineEditAlbum, &QLineEdit::editingFinished, this, &ArtistaWindow::verificarYCrearAlbum, Qt::UniqueConnection);
     connect(ui->toolButton_upload, &QToolButton::clicked, this, &ArtistaWindow::seleccionarPortada, Qt::UniqueConnection);
-    //connect(ui->toolButton_addSong, &QToolButton::clicked, this, &ArtistaWindow::initPopup, Qt::UniqueConnection);
     connect(ui->toolButton_crear, &QToolButton::clicked, this, &ArtistaWindow::finalizarAlbum, Qt::UniqueConnection);
     // Poner el foco en el lineEdit del título
     ui->lineEditAlbum->setFocus();
 
-    connect(ui->toolButton_clasico,     &QToolButton::clicked, this, [=]() { loadSongs("Clasico"); });
-    connect(ui->toolButton_pop,         &QToolButton::clicked, [this]() { loadSongs("Pop"); });
-    connect(ui->toolButton_elec,        &QToolButton::clicked, [this]() { loadSongs("Electronica"); });
-    connect(ui->toolButton_rock,        &QToolButton::clicked, [this]() { loadSongs("Rock"); });
-    connect(ui->toolButton_regueton,    &QToolButton::clicked, [this]() { loadSongs("Regueton"); });
-    connect(ui->toolButton_cristianos,  &QToolButton::clicked, [this]() { loadSongs("Cristianos"); });
-    connect(ui->toolButton_corridos,    &QToolButton::clicked, [this]() { loadSongs("Corridos"); });
+    connect(ui->toolButton_clasico, &QToolButton::pressed, this, [=]() { loadSongs("Clasico"); });
+    connect(ui->toolButton_pop,         &QToolButton::pressed, this, [=]() { loadSongs("Pop"); });
+    connect(ui->toolButton_elec,        &QToolButton::clicked, this, [=]() { loadSongs("Electronica"); });
+    connect(ui->toolButton_rock,        &QToolButton::clicked, this, [=]() { loadSongs("Rock"); });
+    connect(ui->toolButton_regueton,    &QToolButton::clicked, this, [=]() { loadSongs("Regueton"); });
+    connect(ui->toolButton_cristianos,  &QToolButton::clicked, this, [=]() { loadSongs("Cristianos"); });
+    connect(ui->toolButton_corridos,    &QToolButton::clicked, this, [=]() { loadSongs("Corridos"); });
 
-    connect(ui->btnFilterAlbum,     &QToolButton::clicked, [this]() { cargarAlbumesUsuario("Album"); });
-    connect(ui->btnFilterEP,        &QToolButton::clicked, [this]() { cargarAlbumesUsuario("EP"); });
-    connect(ui->btnFilterSingle,    &QToolButton::clicked, [this]() { cargarAlbumesUsuario("Single"); });
+    connect(ui->btnFilterAlbum,     &QToolButton::clicked, this, [=]() { cargarAlbumesUsuario("Album"); });
+    connect(ui->btnFilterEP,        &QToolButton::clicked, this, [=]() { cargarAlbumesUsuario("EP"); });
+    connect(ui->btnFilterSingle,    &QToolButton::clicked, this, [=]() { cargarAlbumesUsuario("Single"); });
 
     // Limpiar datos anteriores
     albumActual = AlbumTemp();
@@ -1119,6 +1097,7 @@ void ArtistaWindow::conectarMenu(){
 
     connect(cerrarSesion, &QAction::triggered, this, [this]() {
         qDebug() << "Cerrar sesión";
+        media->stop();
         manejo->cerrarSesion();
         MainWindow* m = new MainWindow(nullptr,*manejo);
         m->show();

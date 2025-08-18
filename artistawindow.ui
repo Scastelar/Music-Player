@@ -1441,8 +1441,8 @@ background-color: rgb(186, 186, 186);</string>
               <widget class="QLabel" name="PFPLabel">
                <property name="geometry">
                 <rect>
-                 <x>60</x>
-                 <y>40</y>
+                 <x>40</x>
+                 <y>30</y>
                  <width>171</width>
                  <height>161</height>
                 </rect>
@@ -1463,8 +1463,8 @@ background-color: rgb(186, 186, 186);</string>
               <widget class="QLabel" name="USERlabel">
                <property name="geometry">
                 <rect>
-                 <x>60</x>
-                 <y>210</y>
+                 <x>40</x>
+                 <y>200</y>
                  <width>171</width>
                  <height>26</height>
                 </rect>
@@ -1490,26 +1490,11 @@ background-color: rgb(186, 186, 186);</string>
                <property name="geometry">
                 <rect>
                  <x>340</x>
-                 <y>60</y>
-                 <width>291</width>
-                 <height>131</height>
+                 <y>40</y>
+                 <width>271</width>
+                 <height>161</height>
                 </rect>
                </property>
-               <item>
-                <property name="text">
-                 <string>1 Titulo 20k</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>2 Titulo 14k</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>3 Titulo 12k</string>
-                </property>
-               </item>
               </widget>
               <widget class="QToolButton" name="toolButton_upload_8">
                <property name="enabled">
@@ -1517,8 +1502,8 @@ background-color: rgb(186, 186, 186);</string>
                </property>
                <property name="geometry">
                 <rect>
-                 <x>250</x>
-                 <y>40</y>
+                 <x>220</x>
+                 <y>30</y>
                  <width>71</width>
                  <height>21</height>
                 </rect>
@@ -1535,7 +1520,7 @@ background-color: rgb(186, 186, 186);</string>
                <property name="geometry">
                 <rect>
                  <x>340</x>
-                 <y>30</y>
+                 <y>10</y>
                  <width>171</width>
                  <height>26</height>
                 </rect>
@@ -1579,9 +1564,9 @@ background-color: rgb(186, 186, 186);</string>
                <property name="geometry">
                 <rect>
                  <x>340</x>
-                 <y>250</y>
-                 <width>301</width>
-                 <height>121</height>
+                 <y>240</y>
+                 <width>271</width>
+                 <height>131</height>
                 </rect>
                </property>
                <property name="widgetResizable">
@@ -1592,14 +1577,14 @@ background-color: rgb(186, 186, 186);</string>
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>299</width>
-                  <height>119</height>
+                  <width>269</width>
+                  <height>129</height>
                  </rect>
                 </property>
                 <layout class="QHBoxLayout" name="horizontalLayout_31">
                  <item>
                   <widget class="QWidget" name="vistaAlbums" native="true">
-                   <layout class="QHBoxLayout" name="horizontalLayout_32"/>
+                   <layout class="QHBoxLayout" name="HAlbums"/>
                   </widget>
                  </item>
                 </layout>
@@ -1608,8 +1593,8 @@ background-color: rgb(186, 186, 186);</string>
               <widget class="QLabel" name="USERlabel_2">
                <property name="geometry">
                 <rect>
-                 <x>40</x>
-                 <y>250</y>
+                 <x>20</x>
+                 <y>240</y>
                  <width>211</width>
                  <height>26</height>
                 </rect>
@@ -1633,14 +1618,14 @@ background-color: rgb(186, 186, 186);</string>
               <widget class="QTextBrowser" name="DESCtext">
                <property name="geometry">
                 <rect>
-                 <x>60</x>
-                 <y>290</y>
-                 <width>171</width>
+                 <x>20</x>
+                 <y>280</y>
+                 <width>211</width>
                  <height>81</height>
                 </rect>
                </property>
                <property name="styleSheet">
-                <string notr="true">background-color: rgb(255, 255, 255);</string>
+                <string notr="true">color: rgb(190, 190, 190);</string>
                </property>
               </widget>
              </widget>
