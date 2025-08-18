@@ -3,23 +3,33 @@
 
 #include <QWidget>
 #include <QListWidget>
+#include <QLabel>
 #include "Album.h"
 #include "Cuentas.h"
 
 class AlbumDetailWindow : public QWidget {
     Q_OBJECT
 public:
-    explicit AlbumDetailWindow(const Album& album, Cuentas* cuentas, QWidget* parent = nullptr);
+    explicit AlbumDetailWindow(Album& album, Cuentas* cuentas, QWidget* parent = nullptr);
 
 signals:
     void solicitarReproduccionCancion(Cancion* cancion);
    void solicitarReproduccionAlbum(const QList<Cancion*>& canciones, int indiceInicial);
-    void agregarCancionAlAlbum(const Album* album);
+    void agregarCancionAlAlbum( Album* album);
+
+   void albumModificado( Album& album);
+   void editarCancionClicked(int cancionId);
+   void eliminarCancionClicked(int cancionId, int albumId);
+
 
 public slots:
     void setRandomMode(bool enabled) { m_randomMode = enabled; }
     void reproducirSiguiente();
     void reproducirAnterior();
+
+    void updateCoverImage();
+    void onEditAlbumTitleClicked();
+    void onEditAlbumCoverClicked();
 
 private slots:
     void onItemClicked(QListWidgetItem* item);
@@ -30,11 +40,14 @@ private:
     void loadSongs();
 
     bool m_randomMode = false;
+    QLabel* m_coverLabel;
+    QLabel* m_albumTitleLabel;
+    QLabel* m_albumsetNombre;
 
     QListWidget* m_songsList;
     QList<Cancion*> m_cancionesAlbum;
     int m_indiceActual = -1;
-    const Album& m_album;
+    Album& m_album;
     Cuentas* m_cuentas;
 };
 

@@ -528,8 +528,8 @@ bool Cuentas::eliminarAlbum(int albumId) {
     return true;
 }
 
-bool Cuentas::actualizarAlbum(int albumId, const QString& nuevoNombre,
-                              const QString& nuevaPortada, const QString& nuevoTipo) {
+bool Cuentas::actualizarAlbum(int albumId, const QString& nuevoNombre,QString& nuevaPortada) {
+
     if (!albumes.contains(albumId)) return false;
 
     Album* album = albumes[albumId];
@@ -544,13 +544,6 @@ bool Cuentas::actualizarAlbum(int albumId, const QString& nuevoNombre,
     // Actualizar portada si se proporciona
     if (!nuevaPortada.isEmpty()) {
         album->setPortada(nuevaPortada);
-    }
-
-    // Actualizar tipo si se proporciona
-    if (!nuevoTipo.isEmpty()) {
-        albumesPorTipo[album->getTipoString()].removeAll(albumId);
-        album->setTipoFromString(nuevoTipo);
-        albumesPorTipo[nuevoTipo].append(albumId);
     }
 
     guardarAlbumesEnArchivo();

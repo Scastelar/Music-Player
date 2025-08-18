@@ -26,7 +26,6 @@ public:
     void setIcono(QToolButton* boton, ushort unicode, int size);
     void setupPasswordLineEdit(QLineEdit *passwordEdit);
     void conectarMenu();
-    void initPopup();
     void actualizarListaCanciones();
     void seleccionarPortada();
     void verificarYCrearAlbum();
@@ -97,7 +96,6 @@ private:
     Album* m_albumActual = nullptr;
 
 private slots:
-    void on_toolButton_Playlist_clicked();
 
     void on_toolButton_home_clicked();
 
@@ -134,8 +132,6 @@ private slots:
 
     void eliminarCancion(int cancionId);
 
-    void agregarCancionAlAlbum(const Album* album);
-
     void reproducirAlbumCompleto(const QList<Cancion*>& canciones, int indiceInicial);
 
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
@@ -158,6 +154,7 @@ private slots:
     void on_horizontalSlider_Audio_File_Duration_sliderPressed();
     void on_horizontalSlider_Audio_File_Duration_sliderReleased();
     void on_horizontalSlider_Audio_File_Duration_valueChanged(int value);
+    void on_desactivarButton_clicked();
 };
 
 #endif // ARTISTAWINDOW_H

@@ -4,6 +4,7 @@
 #include "songwidget.h"
 #include "albumwidget.h"
 #include "albumdetailwindow.h"
+#include "halbumwidget.h"
 
 #include <QFile>
 #include <QMenu>
@@ -45,7 +46,7 @@ ArtistaWindow::ArtistaWindow(QWidget *parent,Cuentas& manejo)
     isMuted = false;
     setIcono(ui->toolButton_play, 0xe037, 20); // Icono de play inicial
 
-    loadSongs("");
+    loadSongs("Pop");
     initComponents();
     cargarAlbumesUsuario("");
 
@@ -275,7 +276,6 @@ void ArtistaWindow::reproducirAlbumCompleto(const QList<Cancion*>& canciones, in
 void ArtistaWindow::loadSongs(const QString &genero)
 {
     clearGrid();
-
     QList<Cancion*> cancionesFiltradas;
 
     if (genero.isEmpty()) {
@@ -343,13 +343,10 @@ void ArtistaWindow::cargarAlbumesUsuario(const QString& tipo) {
             }
         }
     }
-
-
-    qDebug() << "Álbumes filtrados:" << albumesFiltrados.size();
-
     for (Album* album : albumesFiltrados) {
-        //SongWidget *songWidget = new SongWidget(album,this);
-        //ui->HAlbums->addWidget(songWidget,0,Qt::AlignCenter);
+
+        HAlbumWidget* h = new HAlbumWidget(*album, nullptr);
+        ui->HAlbums->addWidget(h,0,Qt::AlignCenter);
 
         AlbumWidget* albumWidget = new AlbumWidget(*album, manejo); // Pasamos cuentas
         QListWidgetItem* item = new QListWidgetItem();
@@ -504,75 +501,6 @@ void ArtistaWindow::finalizarAlbum() {
 
 
 
-void ArtistaWindow::agregarCancionAlAlbum(const Album* album) {
-    QDialog* popup = new QDialog(this);
-    popup->setWindowTitle("Registrar Canción");
-    popup->setFixedSize(400, 330);
-    popup->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-
-    QVBoxLayout* layout = new QVBoxLayout(popup);
-    QFormLayout* formLayout = new QFormLayout();
-
-    QLineEdit* tituloEdit = new QLineEdit(popup);
-    formLayout->addRow("Título:", tituloEdit);
-
-    QComboBox* generoCombo = new QComboBox(popup);
-    generoCombo->addItems({"Clásico", "Pop", "Electrónica", "Rock", "Reguetón", "Cristianos", "Corridos"});
-    formLayout->addRow("Género:", generoCombo);
-
-    QComboBox* categoriaCombo = new QComboBox(popup);
-    categoriaCombo->addItems({"Recomendado", "Favorito", "Infantil", "Instrumental"});
-    formLayout->addRow("Categoría:", categoriaCombo);
-
-    QHBoxLayout* rutaLayout = new QHBoxLayout();
-    QLineEdit* rutaEdit = new QLineEdit(popup);
-    QPushButton* buscarBtn = new QPushButton("Buscar", popup);
-    rutaLayout->addWidget(rutaEdit);
-    rutaLayout->addWidget(buscarBtn);
-    formLayout->addRow("Ruta del audio:", rutaLayout);
-
-    layout->addLayout(formLayout);
-
-    QHBoxLayout* botonesLayout = new QHBoxLayout();
-    QPushButton* btnAceptar = new QPushButton("Aceptar", popup);
-    QPushButton* btnCancelar = new QPushButton("Cancelar", popup);
-    botonesLayout->addWidget(btnAceptar);
-    botonesLayout->addWidget(btnCancelar);
-    layout->addLayout(botonesLayout);
-
-    connect(buscarBtn, &QPushButton::clicked, [rutaEdit]() {
-        QString fileName = QFileDialog::getOpenFileName(nullptr,"Seleccionar archivo de audio", "", "Audio Files (*.mp3 *.wav *.ogg)");
-        if (!fileName.isEmpty()) {
-            rutaEdit->setText(fileName);
-        }
-    });
-
-    connect(btnAceptar, &QPushButton::clicked, [this, popup, album, tituloEdit, generoCombo, categoriaCombo, rutaEdit]() {
-        if (tituloEdit->text().isEmpty() || rutaEdit->text().isEmpty()) {
-            QMessageBox::warning(popup, "Error", "Todos los campos son obligatorios");
-            return;
-        }
-
-        Cancion* nuevaCancion = new Cancion(
-            0, // ID temporal
-            tituloEdit->text(),
-            usuario->getNombreUsuario(),
-            album->getNombre(),
-            generoCombo->currentText(),
-            categoriaCombo->currentText(),
-            rutaEdit->text(),
-            album->getPortada()
-            );
-
-        manejo->agregarCancionAlbum(album->getId(), *nuevaCancion);
-
-        popup->accept();
-    });
-
-    connect(btnCancelar, &QPushButton::clicked, popup, &QDialog::reject);
-
-    popup->exec();
-}
 
 void ArtistaWindow::on_toolButton_random_clicked()
 {
@@ -703,7 +631,7 @@ void ArtistaWindow::mostrarDetalleAlbum(Album* album) {
             detailWindow, &AlbumDetailWindow::reproducirAnterior);
 
     connect(detailWindow, &AlbumDetailWindow::agregarCancionAlAlbum,
-            this, &ArtistaWindow::agregarCancionAlAlbum);
+            this, &ArtistaWindow::on_toolButton_addSong_clicked);
 
     // Conexión para manejar el final de la canción
     connect(media, &QMediaPlayer::mediaStatusChanged, this, [=](QMediaPlayer::MediaStatus status) {
@@ -773,12 +701,6 @@ void ArtistaWindow::setIcono(QToolButton* boton, ushort unicode, int size){
     boton->setStyleSheet("color: white; border: none;");
 }
 
-
-void ArtistaWindow::on_toolButton_Playlist_clicked()
-{
-    ui->stackedWidget->setCurrentIndex(1);
-    ui->toolButton_upload->setEnabled(true);
-}
 
 void ArtistaWindow::on_toolButton_home_clicked()
 {
@@ -887,7 +809,7 @@ void ArtistaWindow::initComponents()
         );
 
     connect(ui->lineEditAlbum, &QLineEdit::editingFinished, this, &ArtistaWindow::verificarYCrearAlbum, Qt::UniqueConnection);
-    connect(ui->toolButton_upload, &QToolButton::clicked, this, &ArtistaWindow::seleccionarPortada, Qt::UniqueConnection);
+    //connect(ui->toolButton_upload, &QToolButton::clicked, this, &ArtistaWindow::seleccionarPortada, Qt::UniqueConnection);
     connect(ui->toolButton_crear, &QToolButton::clicked, this, &ArtistaWindow::finalizarAlbum, Qt::UniqueConnection);
     // Poner el foco en el lineEdit del título
     ui->lineEditAlbum->setFocus();
@@ -1060,7 +982,7 @@ void ArtistaWindow::initComponents()
         }
     });
 
-    setIcono(ui->toolButton_Playlist,0xe03b,20); //0xe03b
+    setIcono(ui->toolButton_addSong_2,0xe03b,20); //0xe03b
     setIcono(ui->toolButton_home,0xe88a,20); //home 0xe88a
     //setIcono(ui->toolButton_play,0xe037,20);
     setIcono(ui->toolButton_prev,0xe045,20); //e045
@@ -1106,7 +1028,27 @@ void ArtistaWindow::conectarMenu(){
 
 }
 
+//Desactivar Cuenta
 
+void ArtistaWindow::on_desactivarButton_clicked()
+{
+    QMessageBox warning;
+    warning.setIcon(QMessageBox::Warning);
+    warning.setInformativeText("Deseas desactivar tu cuenta permanentemente?");
+    warning.setText("Se eliminara toda informacion y musica creada.");
+    warning.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
+    warning.setDefaultButton(QMessageBox::Cancel);
+    int opc = warning.exec();
 
-
+    if (opc == QMessageBox::Cancel) {
+        return; // Sale de la función sin hacer nada más
+    }
+    else if (opc == QMessageBox::Ok) {
+        manejo->desactivarCuenta(usuario->getNombreUsuario());
+        manejo->cerrarSesion();
+        MainWindow* m = new MainWindow(nullptr,*manejo);
+        m->show();
+        this->close();
+    }
+}
 

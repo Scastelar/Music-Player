@@ -5,8 +5,12 @@
 #include <QDebug>
 #include <QPushButton>
 #include <QRandomGenerator>
+#include <QMenu>
+#include <QAction>
+#include <QInputDialog>
+#include <QFileDialog>
 
-AlbumDetailWindow::AlbumDetailWindow(const Album& album, Cuentas* cuentas, QWidget* parent)
+AlbumDetailWindow::AlbumDetailWindow( Album& album, Cuentas* cuentas, QWidget* parent)
     : QWidget(parent), m_album(album), m_cuentas(cuentas) {
     setWindowTitle(album.getNombre());
     setupUI();
@@ -25,14 +29,10 @@ void AlbumDetailWindow::setupUI() {
     headerLayout->setSpacing(20);
 
     // Portada más pequeña
-    QLabel* cover = new QLabel;
-    QPixmap coverPixmap(m_album.getPortada());
-    if (coverPixmap.isNull()) {
-        coverPixmap = QPixmap(":/images/default_cover.png");
-    }
-    cover->setPixmap(coverPixmap.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    cover->setAlignment(Qt::AlignCenter);
-    cover->setStyleSheet("border-radius: 4px;");
+    m_coverLabel = new QLabel;
+    updateCoverImage();
+    m_coverLabel->setAlignment(Qt::AlignCenter);
+    m_coverLabel->setStyleSheet("border-radius: 4px;");
 
     // Detalles compactos
     QVBoxLayout* detailsLayout = new QVBoxLayout;
@@ -57,9 +57,42 @@ void AlbumDetailWindow::setupUI() {
         return row;
     };
 
-    detailsLayout->addWidget(createDetailRow("Título", m_album.getNombre()));
+    m_albumTitleLabel = new QLabel(m_album.getNombre());
+    m_albumTitleLabel->setStyleSheet("font-size: 11pt; color: white;");
+
+    QWidget* titleRow = new QWidget;
+    QHBoxLayout* titleRowLayout = new QHBoxLayout(titleRow);
+    titleRowLayout->setContentsMargins(0, 0, 0, 0);
+
+    QLabel* titleLabel = new QLabel("Título:");
+    titleLabel->setStyleSheet("font-weight: bold; font-size: 11pt; color: white;");
+    titleLabel->setMinimumWidth(60);
+
+    QPushButton* btnEditTitle = new QPushButton("Editar");
+    btnEditTitle->setStyleSheet(
+        "QPushButton { background-color: transparent; color: #DE5D83; padding: 2px 5px; border: 1px solid #DE5D83; border-radius: 2px; }"
+        "QPushButton:hover { background-color: #DE5D83; color: white; }"
+        );
+    btnEditTitle->setFixedSize(50, 20);
+    connect(btnEditTitle, &QPushButton::clicked, this, &AlbumDetailWindow::onEditAlbumTitleClicked);
+
+    titleRowLayout->addWidget(titleLabel);
+    titleRowLayout->addWidget(m_albumTitleLabel);
+    titleRowLayout->addWidget(btnEditTitle);
+    titleRowLayout->addStretch();
+
+    detailsLayout->addWidget(titleRow);
     detailsLayout->addWidget(createDetailRow("Tipo", m_album.getTipoString()));
     detailsLayout->addWidget(createDetailRow("Fecha", m_album.getFechaCreacion().date().toString("dd/MM/yyyy")));
+
+    // Botón editar portada
+    QPushButton* btnEditCover = new QPushButton("Cambiar Portada");
+    btnEditCover->setStyleSheet(
+        "QPushButton { background-color: transparent; color: #DE5D83; padding: 2px 5px; border: 1px solid #DE5D83; border-radius: 2px; }"
+        "QPushButton:hover { background-color: #DE5D83; color: white; }"
+        );
+    btnEditCover->setFixedSize(120, 20);
+    connect(btnEditCover, &QPushButton::clicked, this, &AlbumDetailWindow::onEditAlbumCoverClicked);
 
     // Botón agregar canción
     QPushButton* btnAgregar = new QPushButton("Agregar Canción");
@@ -83,10 +116,16 @@ void AlbumDetailWindow::setupUI() {
         }
     });
 
+    // Layout para botones de edición
+    QVBoxLayout* editButtonsLayout = new QVBoxLayout;
+    editButtonsLayout->addWidget(btnEditCover);
+    editButtonsLayout->addWidget(btnAgregar);
+    editButtonsLayout->setSpacing(5);
+    editButtonsLayout->setContentsMargins(0, 0, 0, 0);
 
-    headerLayout->addWidget(cover);
+    headerLayout->addWidget(m_coverLabel);
     headerLayout->addLayout(detailsLayout, 1);
-    headerLayout->addWidget(btnAgregar);
+    headerLayout->addLayout(editButtonsLayout);
 
     // 2. Lista de canciones
     QLabel* songsTitle = new QLabel("CANCIONES");
@@ -103,32 +142,35 @@ void AlbumDetailWindow::setupUI() {
     QLabel* numHeader = new QLabel("#");
     QLabel* titleHeader = new QLabel("TÍTULO");
     QLabel* artistHeader = new QLabel("ARTISTA");
-    QLabel* durationHeader = new QLabel("DURACIÓN");
+    QLabel* durationHeader = new QLabel("GENERO");
     QLabel* dateHeader = new QLabel("FECHA");
+    QLabel* actionsHeader = new QLabel("ACCIONES");
 
     numHeader->setStyleSheet(headerStyle);
     titleHeader->setStyleSheet(headerStyle);
     artistHeader->setStyleSheet(headerStyle);
     durationHeader->setStyleSheet(headerStyle);
     dateHeader->setStyleSheet(headerStyle);
+    actionsHeader->setStyleSheet(headerStyle);
 
     numHeader->setFixedWidth(30);
     dateHeader->setFixedWidth(100);
+    actionsHeader->setFixedWidth(80);
 
     headerSongsLayout->addWidget(numHeader);
     headerSongsLayout->addWidget(titleHeader, 1);
     headerSongsLayout->addWidget(artistHeader, 1);
     headerSongsLayout->addWidget(durationHeader, 1);
     headerSongsLayout->addWidget(dateHeader);
+    headerSongsLayout->addWidget(actionsHeader);
 
     // Configuración de la lista
     m_songsList = new QListWidget;
-    m_songsList->setMinimumHeight(200); // Altura mínima
-    // Stylesheet ultra simple
+    m_songsList->setMinimumHeight(200);
     m_songsList->setStyleSheet(
         "QListWidget {"
-        "   background-color: #2d2d2d;"  // Fondo oscuro
-        "   color: white;"               // Texto blanco
+        "   background-color: #2d2d2d;"
+        "   color: white;"
         "   font-size: 11px;"
         "}"
         "QListWidget::item {"
@@ -152,12 +194,12 @@ void AlbumDetailWindow::loadSongs() {
     m_cancionesAlbum.clear();
     m_indiceActual = -1;
 
-    int index = 0; // Índice visual (comienza desde 0)
+    int index = 0;
 
     for (int cancionId : m_album.getCanciones()) {
         Cancion* cancion = m_cuentas->buscarCancionPorId(cancionId);
         if (cancion) {
-            m_cancionesAlbum.append(cancion); // Guardar objeto canción
+            m_cancionesAlbum.append(cancion);
 
             QListWidgetItem* item = new QListWidgetItem;
 
@@ -167,8 +209,8 @@ void AlbumDetailWindow::loadSongs() {
             songLayout->setContentsMargins(10, 5, 10, 5);
             songLayout->setSpacing(10);
 
-            // Índice visual (1-based)
-            QLabel* numLabel = new QLabel(QString::number(index + 1)); // Mostrar desde 1
+            // Índice visual
+            QLabel* numLabel = new QLabel(QString::number(index + 1));
             numLabel->setFixedWidth(25);
             numLabel->setMinimumHeight(40);
 
@@ -182,18 +224,42 @@ void AlbumDetailWindow::loadSongs() {
             artistLabel->setMinimumWidth(150);
             artistLabel->setMinimumHeight(40);
 
-            // Duracion
-            QTime current(0,0); current = current.addSecs((cancion->getDuracion()));
-            const QString format = "mm:ss";
-            QLabel* durationLabel = new QLabel();
-            durationLabel->setText(current.toString(format));
-            durationLabel->setFixedWidth(80);
+            // Genero
+            QLabel* durationLabel = new QLabel(cancion->getGenero());
+            durationLabel->setMinimumWidth(150);
             durationLabel->setMinimumHeight(40);
 
             // Fecha
             QLabel* dateLabel = new QLabel(cancion->getFechaRegistro().date().toString("dd/MM/yyyy"));
             dateLabel->setFixedWidth(80);
             dateLabel->setMinimumHeight(40);
+
+            // Botón de menú
+            QPushButton* menuButton = new QPushButton("⋮");
+            menuButton->setFixedSize(30, 30);
+            menuButton->setStyleSheet(
+                "QPushButton { background-color: transparent; color: white; border: 1px solid #555; border-radius: 4px; }"
+                "QPushButton:hover { background-color: #444; }"
+                );
+
+            // Menú contextual
+            QMenu* songMenu = new QMenu(menuButton);
+            QAction* editAction = new QAction("Editar canción", songMenu);
+            QAction* deleteAction = new QAction("Eliminar canción", songMenu);
+
+            songMenu->addAction(editAction);
+            songMenu->addAction(deleteAction);
+
+            menuButton->setMenu(songMenu);
+
+            // Conectar acciones
+            connect(editAction, &QAction::triggered, this, [this, cancionId]() {
+                emit editarCancionClicked(cancionId);
+            });
+
+            connect(deleteAction, &QAction::triggered, this, [this, cancionId]() {
+                emit eliminarCancionClicked(cancionId, m_album.getId());
+            });
 
             // Estilos
             QString labelStyle = "color: white; font-size: 11px;";
@@ -209,17 +275,18 @@ void AlbumDetailWindow::loadSongs() {
             songLayout->addWidget(artistLabel);
             songLayout->addWidget(durationLabel);
             songLayout->addWidget(dateLabel);
+            songLayout->addWidget(menuButton);
 
             // Configurar item
             item->setSizeHint(songWidget->sizeHint());
             m_songsList->addItem(item);
             m_songsList->setItemWidget(item, songWidget);
 
-            // Guardar datos importantes (usando diferentes roles)
-            item->setData(Qt::UserRole, cancionId); // ID para búsquedas
-            item->setData(Qt::UserRole , index); // Índice en m_cancionesAlbum
+            // Guardar datos importantes
+            item->setData(Qt::UserRole, cancionId);
+            item->setData(Qt::UserRole+1, index);
 
-            index++; // Incrementar índice
+            index++;
         }
     }
 
@@ -227,6 +294,37 @@ void AlbumDetailWindow::loadSongs() {
             this, &AlbumDetailWindow::onItemClicked);
 }
 
+void AlbumDetailWindow::updateCoverImage() {
+    QPixmap coverPixmap(m_album.getPortada());
+    if (coverPixmap.isNull()) {
+        coverPixmap = QPixmap(":/images/default_cover.png");
+    }
+    m_coverLabel->setPixmap(coverPixmap.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+}
+
+void AlbumDetailWindow::onEditAlbumTitleClicked() {
+    bool ok;
+    QString newTitle = QInputDialog::getText(this, "Editar título del álbum",
+                                             "Nuevo título:", QLineEdit::Normal,
+                                             m_album.getNombre(), &ok);
+    if (ok && !newTitle.isEmpty() && newTitle != m_album.getNombre()) {
+        m_album.setNombre(newTitle);
+        m_albumTitleLabel->setText(newTitle);
+        setWindowTitle(newTitle);
+        emit albumModificado(m_album);
+    }
+}
+
+void AlbumDetailWindow::onEditAlbumCoverClicked() {
+    QString fileName = QFileDialog::getOpenFileName(this, "Seleccionar nueva portada",
+                                                    QDir::homePath(),
+                                                    "Imágenes (*.png *.jpg *.jpeg)");
+    if (!fileName.isEmpty()) {
+        m_album.setPortada(fileName);
+        updateCoverImage();
+        emit albumModificado(m_album);
+    }
+}
 
 void AlbumDetailWindow::onItemClicked(QListWidgetItem* item) {
     m_indiceActual = item->data(Qt::UserRole).toInt();
