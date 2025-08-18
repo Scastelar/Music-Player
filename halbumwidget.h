@@ -11,19 +11,6 @@ class HAlbumWidget : public QWidget
 public:
     explicit HAlbumWidget(Album& album, QWidget *parent = nullptr);
 
-signals:
-    void editAlbumRequested(int id);
-    void deleteAlbumRequested(int id);
-    void albumClicked(Album& album);
-
-protected:
-    void mousePressEvent(QMouseEvent *event) override;
-    void enterEvent(QEnterEvent *event) override;
-    void leaveEvent(QEvent *event) override;
-
-private slots:
-    void onEditAlbum();
-    void onDeleteAlbum();
 
 private:
     Album& m_album;

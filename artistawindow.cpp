@@ -375,8 +375,8 @@ void ArtistaWindow::cargarAlbumesUsuario(const QString& tipo) {
 
     for (Album* album : albumesFiltrados) {
 
-        HAlbumWidget* albumWidget = new AlbumWidget(*album, nullptr);
-        ui->horizontalLayout_32->addWidget(albumWidget,0,Qt::AlignCenter);
+        HAlbumWidget* h = new HAlbumWidget(*album, nullptr);
+        ui->horizontalLayout_32->addWidget(h,0,Qt::AlignCenter);
 
         AlbumWidget* albumWidget = new AlbumWidget(*album, manejo); // Pasamos cuentas
         QListWidgetItem* item = new QListWidgetItem();
