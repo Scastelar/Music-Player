@@ -20,6 +20,7 @@ SOURCES += \
     biblioteca.cpp \
     cancion.cpp \
     cuentas.cpp \
+    halbumwidget.cpp \
     homewindow.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -37,6 +38,7 @@ HEADERS += \
     biblioteca.h \
     cancion.h \
     cuentas.h \
+    halbumwidget.h \
     homewindow.h \
     mainwindow.h \
     playlist.h \

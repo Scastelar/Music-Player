@@ -4,6 +4,7 @@
 #include "songwidget.h"
 #include "albumwidget.h"
 #include "albumdetailwindow.h"
+#include "halbumwidget.h"
 
 #include <QFile>
 #include <QMenu>
@@ -373,8 +374,11 @@ void ArtistaWindow::cargarAlbumesUsuario(const QString& tipo) {
     }
 
     for (Album* album : albumesFiltrados) {
-        AlbumWidget* albumWidget = new AlbumWidget(*album, manejo); // Pasamos cuentas
 
+        HAlbumWidget* albumWidget = new AlbumWidget(*album, nullptr);
+        ui->horizontalLayout_32->addWidget(albumWidget,0,Qt::AlignCenter);
+
+        AlbumWidget* albumWidget = new AlbumWidget(*album, manejo); // Pasamos cuentas
         QListWidgetItem* item = new QListWidgetItem();
         item->setSizeHint(albumWidget->sizeHint());
 

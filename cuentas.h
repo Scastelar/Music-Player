@@ -12,13 +12,14 @@
 #include <QHash>
 #include <QDataStream>
 #include <limits>
+#include <QDateTime>
 
 struct IndiceUsuario {
     qint64 posicion;      // Posición en el archivo (usuarios.dat o artistas.dat)
     bool esArtista;
 };
 
-//Metodos de serializacion
+// Métodos de serialización
 QDataStream& operator<<(QDataStream& out, const IndiceUsuario& obj);
 QDataStream& operator>>(QDataStream& in, IndiceUsuario& obj);
 
@@ -43,20 +44,19 @@ private:
     // Índices secundarios
     QHash<QString, int> usernameAId;       // Username → ID usuario
 
-    //CANCIONES
+    // CANCIONES
     QHash<QString, QList<int>> cancionesPorTitulo;  // Título → IDs de canciones
     QHash<QString, QList<int>> cancionesPorArtista; // Artista → IDs de canciones
-    QHash<QString, QList<int>> cancionesPorGenero; // Genero -> IDs de canciones
+    QHash<QString, QList<int>> cancionesPorGenero;  // Genero → IDs de canciones
 
-    //ALBUMES
+    // ALBUMES
     QHash<QString, QList<int>> albumesPorTitulo;   // Título → IDs de álbumes
-    QHash<QString, QList<int>> albumesPorTipo;   // Tipo → IDs de álbumes
-    QHash<int, QList<int>> albumesPorUsuario;      // UserID → IDs de sus álbumes
+    QHash<QString, QList<int>> albumesPorTipo;    // Tipo → IDs de álbumes
+    QHash<int, QList<int>> albumesPorUsuario;     // UserID → IDs de sus álbumes
 
-    //PLAYLISTS
-    QHash<QString, QList<int>> playlistsPorTitulo;     // Título → IDs de playlists
+    // PLAYLISTS
+    QHash<QString, QList<int>> playlistsPorTitulo; // Título → IDs de playlists
     QHash<int, QList<int>> playlistsPorUsuario;    // UserID → IDs de sus playlists
-
 
     // Variables de estado
     int idUsuarioActual;
@@ -84,17 +84,17 @@ private:
     void cargarPlaylistsDesdeArchivo();
     void guardarPlaylistsEnArchivo();
 
-    // Métodos privados de generación de IDs
+    // Métodos privados auxiliares
     int generarIdUnico(bool esCancion = false, bool esLista = false);
     int generarNuevoId();
+    QString obtenerRutaArchivoUsuario(int userId, const QString& tipo) const;
+    bool agregarIdAArchivo(const QString& archivo, int id);
+    bool eliminarIdDeArchivo(const QString& archivo, int id);
+    QList<int> leerIdsDeArchivo(const QString& archivo);
 
     // Métodos privados de creación de archivos de usuario
     void crearArchivosUsuarioEstandar(int userId);
     void crearArchivosAdministrador(int userId);
-
-    QString obtenerRutaArchivoUsuario(int userId, const QString& tipo) const {
-        return CARPETA_USUARIOS + QString::number(userId) + "/" + tipo + "_" + QString::number(userId) + ".dat";
-    }
 
 public:
     // Constructor y destructor
@@ -106,8 +106,7 @@ public:
     void cerrarSesion();
     Usuario* getIdUsuarioActual() const;
     bool setIdUsuarioActual(int nuevoId);
-
-    void verificarAutenticacion(const QString& username, const QString& password) ;
+    void verificarAutenticacion(const QString& username, const QString& password);
 
     // Métodos de gestión de cuentas
     bool crearUsuarioNormal(const QString& nombreUsuario, const QString& contrasena,
@@ -125,11 +124,13 @@ public:
                        const QString& nuevoPais, const QString& nuevoGenero,
                        const QString& nuevaDescripcion);
 
-
     // Métodos de gestión de álbumes
     bool crearAlbum(int userId, const QString& nombre, const QString& portada);
     bool agregarCancionAlbum(int albumId, const Cancion& cancion);
-    int getUltimoIdLista(){ return ultimoIdLista;}
+    bool eliminarAlbum(int albumId);
+    bool actualizarAlbum(int albumId, const QString& nuevoNombre,
+                          QString& nuevaPortada);
+    int getUltimoIdLista() { return ultimoIdLista; }
 
     // Métodos de gestión de playlists
     bool crearPlaylist(int userId, const QString& nombre);
@@ -137,9 +138,42 @@ public:
 
     // Métodos de gestión de canciones
     bool eliminarCancion(int cancionId);
-    bool actualizarCancion(int id, const QString &nuevoTitulo,
-                           const QString &nuevoGenero,
-                           const QString &nuevaRutaAudio);
+    bool actualizarCancion(int id, const QString& nuevoTitulo,
+                           const QString& nuevoGenero,
+                           const QString& nuevaRutaAudio);
+
+    // Métodos para archivos de usuario (biblioteca, playlists, favoritos)
+    bool agregarCancionABiblioteca(int userId, int cancionId);
+    bool eliminarCancionDeBiblioteca(int userId, int cancionId);
+    QList<int> obtenerBibliotecaUsuario(int userId);
+
+    bool agregarPlaylistAUsuario(int userId, int playlistId);
+    bool eliminarPlaylistDeUsuario(int userId, int playlistId);
+    QList<int> obtenerPlaylistsUsuario(int userId);
+
+    bool agregarCancionAFavoritos(int userId, int cancionId);
+    bool eliminarCancionDeFavoritos(int userId, int cancionId);
+    QList<int> obtenerFavoritosUsuario(int userId);
+
+    // Métodos para obtener listas de canciones
+    QList<Cancion*> obtenerCancionesBiblioteca(int userId);
+    QList<Cancion*> obtenerCancionesFavoritas(int userId);
+    QList<Cancion*> obtenerCancionesPlaylistsUsuario(int userId);
+
+    // Métodos para estadísticas y reproducciones
+    bool registrarReproduccion(int userId, int cancionId);
+    bool registrarCalificacion(int userId, int cancionId, int calificacion);
+
+    // Estadísticas personales
+    int totalCancionesEscuchadas(int userId);
+    QList<QPair<int, int>> cancionesMasEscuchadas(int userId, int limite = 10);
+    double promedioCalificacionesUsuario(int userId);
+
+    // Estadísticas globales (solo administradores)
+    QList<QPair<int, int>> cancionesMasEscuchadasGlobal(int limite = 10);
+    QList<QPair<int, double>> cancionesMejorCalificadasGlobal(int limite = 10);
+    QList<QPair<int, int>> usuariosMasActivos(int limite = 10);
+    QMap<QString, double> promedioCalificacionesPorGenero();
 
     // Métodos de búsqueda
     Usuario* buscarUsuario(const QString& nombreUsuario) const;
@@ -154,7 +188,6 @@ public:
     QList<Album*> buscarAlbumesPorTipo(const QString& tipo);
     QList<Album*> buscarAlbumesPorArtista(const int& artista);
     QList<Playlist*> buscarPlaylistsPorNombre(const QString& nombre);
-
 };
 
 #endif // CUENTAS_H

@@ -265,7 +265,7 @@
               </size>
              </property>
              <property name="currentIndex">
-              <number>0</number>
+              <number>5</number>
              </property>
              <widget class="QWidget" name="page_7">
               <widget class="QScrollArea" name="scrollArea">
@@ -670,7 +670,7 @@ background-color: rgb(186, 186, 186);</string>
                 </rect>
                </property>
                <property name="styleSheet">
-                <string notr="true">background-color: rgb(245, 95, 95);</string>
+                <string notr="true">background-color:rgb(224, 157, 166);</string>
                </property>
                <property name="text">
                 <string/>
