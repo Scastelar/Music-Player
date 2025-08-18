@@ -13,18 +13,23 @@ public:
 
 signals:
     void solicitarReproduccionCancion(Cancion* cancion);
-    void solicitarReproduccionAlbum(Album* album, int indiceInicial);
+   void solicitarReproduccionAlbum(const QList<Cancion*>& canciones, int indiceInicial);
+    void agregarCancionAlAlbum(const Album* album);
 
 public slots:
+    void setRandomMode(bool enabled) { m_randomMode = enabled; }
     void reproducirSiguiente();
     void reproducirAnterior();
 
 private slots:
     void onItemClicked(QListWidgetItem* item);
+    void onAgregarCancionClicked();
 
 private:
     void setupUI();
     void loadSongs();
+
+    bool m_randomMode = false;
 
     QListWidget* m_songsList;
     QList<Cancion*> m_cancionesAlbum;

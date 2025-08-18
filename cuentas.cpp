@@ -515,6 +515,7 @@ bool Cuentas::crearAlbum(int userId, const QString& nombre, const QString& porta
     albumes[nuevoId] = nuevoAlbum;
     albumesPorTitulo[nombre].append(nuevoId);
     albumesPorUsuario[userId].append(nuevoId);
+    albumesPorTipo[nuevoAlbum->getTipoString()].append(nuevoId);
 
     // Guardar en archivo
     QFile file(ARCHIVO_ALBUMES);
@@ -545,6 +546,7 @@ bool Cuentas::agregarCancionAlbum(int albumId, const Cancion& cancion) {
         // Actualizar índices
         cancionesPorTitulo[nuevaCancion->getTitulo()].append(cancionId);
         cancionesPorArtista[nuevaCancion->getArtista()].append(cancionId);
+        cancionesPorGenero[nuevaCancion->getGenero()].append(cancionId);
 
         qDebug() << "Nueva canción creada con ID:" << cancionId;
     }
@@ -606,6 +608,7 @@ bool Cuentas::eliminarCancion(int cancionId) {
     Cancion* cancion = canciones[cancionId];
     cancionesPorTitulo[cancion->getTitulo()].removeAll(cancionId);
     cancionesPorArtista[cancion->getArtista()].removeAll(cancionId);
+    cancionesPorGenero[cancion->getGenero()].removeAll(cancionId);
 
     delete canciones.take(cancionId);
     guardarCancionesEnArchivo();
@@ -687,6 +690,14 @@ QList<Album*> Cuentas::buscarAlbumesPorNombre(const QString& nombre) {
 QList<Album*> Cuentas::buscarAlbumesPorArtista(const int& artistaID) {
     QList<Album*> resultado;
     for (int id : albumesPorUsuario.value(artistaID)) {
+        resultado.append(albumes.value(id));
+    }
+    return resultado;
+}
+
+QList<Album*> Cuentas::buscarAlbumesPorTipo(const QString& tipo) {
+    QList<Album*> resultado;
+    for (int id : albumesPorTipo.value(tipo)) {
         resultado.append(albumes.value(id));
     }
     return resultado;

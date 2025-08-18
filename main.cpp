@@ -2,7 +2,7 @@
 
 #include <QApplication>
 
-
+//yt-dlp -x --audio-format flac --embed-metadata ""
 
 int main(int argc, char *argv[])
 {

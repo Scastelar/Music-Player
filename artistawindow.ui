@@ -110,6 +110,12 @@
               </item>
               <item alignment="Qt::AlignmentFlag::AlignRight">
                <widget class="QToolButton" name="toolButton_Playlist">
+                <property name="toolTip">
+                 <string>&quot;Crear un album&quot;</string>
+                </property>
+                <property name="toolTipDuration">
+                 <number>1</number>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">font: 15pt &quot;Segoe UI&quot;;
 
@@ -123,9 +129,32 @@
              </layout>
             </widget>
            </item>
-           <item alignment="Qt::AlignmentFlag::AlignTop">
+           <item>
             <widget class="QWidget" name="horizontalWidget_19" native="true">
              <layout class="QHBoxLayout" name="horizontalLayout_25">
+              <item>
+               <widget class="QToolButton" name="btnFilterSingle">
+                <property name="toolTip">
+                 <string/>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true"/>
+                </property>
+                <property name="text">
+                 <string>Single</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="btnFilterEP">
+                <property name="styleSheet">
+                 <string notr="true"/>
+                </property>
+                <property name="text">
+                 <string>EP</string>
+                </property>
+               </widget>
+              </item>
               <item>
                <widget class="QToolButton" name="btnFilterAlbum">
                 <property name="styleSheet">
@@ -139,73 +168,22 @@
              </layout>
             </widget>
            </item>
-           <item alignment="Qt::AlignmentFlag::AlignLeft">
-            <widget class="QListWidget" name="listWidget_6">
-             <property name="contextMenuPolicy">
-              <enum>Qt::ContextMenuPolicy::DefaultContextMenu</enum>
+           <item>
+            <widget class="QListWidget" name="listWidget">
+             <property name="verticalScrollBarPolicy">
+              <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
              </property>
-             <property name="acceptDrops">
-              <bool>false</bool>
-             </property>
-             <property name="layoutDirection">
-              <enum>Qt::LayoutDirection::RightToLeft</enum>
-             </property>
-             <property name="autoFillBackground">
-              <bool>true</bool>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::InputMethodHint::ImhNone</set>
-             </property>
-             <property name="selectionBehavior">
-              <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>20</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="flow">
-              <enum>QListView::Flow::TopToBottom</enum>
-             </property>
-             <property name="isWrapping" stdset="0">
-              <bool>false</bool>
-             </property>
-             <property name="resizeMode">
-              <enum>QListView::ResizeMode::Fixed</enum>
-             </property>
-             <property name="layoutMode">
-              <enum>QListView::LayoutMode::SinglePass</enum>
+             <property name="horizontalScrollBarPolicy">
+              <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
              </property>
              <property name="spacing">
               <number>10</number>
              </property>
-             <property name="gridSize">
-              <size>
-               <width>0</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="viewMode">
-              <enum>QListView::ViewMode::ListMode</enum>
-             </property>
-             <property name="modelColumn">
-              <number>0</number>
-             </property>
              <property name="uniformItemSizes">
               <bool>true</bool>
              </property>
-             <property name="batchSize">
-              <number>2</number>
-             </property>
-             <property name="selectionRectVisible">
-              <bool>false</bool>
-             </property>
-             <property name="currentRow">
-              <number>-1</number>
-             </property>
-             <property name="sortingEnabled">
-              <bool>false</bool>
+             <property name="wordWrap">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -294,9 +272,9 @@
                <property name="geometry">
                 <rect>
                  <x>9</x>
-                 <y>49</y>
+                 <y>102</y>
                  <width>661</width>
-                 <height>324</height>
+                 <height>271</height>
                 </rect>
                </property>
                <property name="verticalScrollBarPolicy">
@@ -314,167 +292,11 @@
                   <x>0</x>
                   <y>0</y>
                   <width>659</width>
-                  <height>322</height>
+                  <height>269</height>
                  </rect>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_5">
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_43">
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>30</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>Catalogo</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignmentFlag::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="1" column="0">
-                  <widget class="QWidget" name="generosWidget" native="true">
-                   <property name="minimumSize">
-                    <size>
-                     <width>640</width>
-                     <height>36</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>34</height>
-                    </size>
-                   </property>
-                   <layout class="QHBoxLayout" name="horizontalLayout_27">
-                    <property name="sizeConstraint">
-                     <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
-                    </property>
-                    <item>
-                     <widget class="QToolButton" name="toolButton_25">
-                      <property name="minimumSize">
-                       <size>
-                        <width>57</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(186, 186, 186);</string>
-                      </property>
-                      <property name="text">
-                       <string>Pop</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="toolButton_26">
-                      <property name="minimumSize">
-                       <size>
-                        <width>57</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(186, 186, 186);</string>
-                      </property>
-                      <property name="text">
-                       <string>Clasica</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="toolButton_27">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(186, 186, 186);</string>
-                      </property>
-                      <property name="text">
-                       <string>Electronica</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="toolButton_28">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(186, 186, 186);</string>
-                      </property>
-                      <property name="text">
-                       <string>Regueton</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="toolButton_29">
-                      <property name="minimumSize">
-                       <size>
-                        <width>57</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(186, 186, 186);</string>
-                      </property>
-                      <property name="text">
-                       <string>Rock</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="toolButton_30">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(186, 186, 186);</string>
-                      </property>
-                      <property name="text">
-                       <string>Cristianos</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QToolButton" name="toolButton_31">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>25</height>
-                       </size>
-                      </property>
-                      <property name="styleSheet">
-                       <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(186, 186, 186);</string>
-                      </property>
-                      <property name="text">
-                       <string>Corridos</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
                   <widget class="QWidget" name="gridWidget" native="true">
                    <property name="minimumSize">
                     <size>
@@ -497,8 +319,8 @@ background-color: rgb(186, 186, 186);</string>
               <widget class="QLabel" name="label_7">
                <property name="geometry">
                 <rect>
-                 <x>50</x>
-                 <y>20</y>
+                 <x>10</x>
+                 <y>0</y>
                  <width>231</width>
                  <height>21</height>
                 </rect>
@@ -506,6 +328,174 @@ background-color: rgb(186, 186, 186);</string>
                <property name="text">
                 <string>Bienvenido</string>
                </property>
+              </widget>
+              <widget class="QLabel" name="label_43">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>30</y>
+                 <width>641</width>
+                 <height>30</height>
+                </rect>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>30</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Catalogo</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+              <widget class="QWidget" name="generosWidget" native="true">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>60</y>
+                 <width>641</width>
+                 <height>36</height>
+                </rect>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>640</width>
+                 <height>36</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>34</height>
+                </size>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_27">
+                <property name="sizeConstraint">
+                 <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
+                </property>
+                <item>
+                 <widget class="QToolButton" name="toolButton_pop">
+                  <property name="minimumSize">
+                   <size>
+                    <width>57</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(186, 186, 186);</string>
+                  </property>
+                  <property name="text">
+                   <string>Pop</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_clasico">
+                  <property name="minimumSize">
+                   <size>
+                    <width>57</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(186, 186, 186);</string>
+                  </property>
+                  <property name="text">
+                   <string>Clasica</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_elec">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(186, 186, 186);</string>
+                  </property>
+                  <property name="text">
+                   <string>Electronica</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_regueton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(186, 186, 186);</string>
+                  </property>
+                  <property name="text">
+                   <string>Regueton</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_rock">
+                  <property name="minimumSize">
+                   <size>
+                    <width>57</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(186, 186, 186);</string>
+                  </property>
+                  <property name="text">
+                   <string>Rock</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_cristianos">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(186, 186, 186);</string>
+                  </property>
+                  <property name="text">
+                   <string>Cristianos</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="toolButton_corridos">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>25</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(186, 186, 186);</string>
+                  </property>
+                  <property name="text">
+                   <string>Corridos</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </widget>
              <widget class="QWidget" name="page_8">

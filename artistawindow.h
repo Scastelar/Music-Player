@@ -15,18 +15,6 @@ namespace Ui {
 class ArtistaWindow;
 }
 
-struct Song {
-    QString titulo;
-    QString genero;
-    QString categoria;
-    QString rutaAudio;
-
-    // Constructor para facilitar la creación
-    Song(const QString& t = "", const QString& g = "",
-         const QString& c = "", const QString& r = "")
-        : titulo(t), genero(g), categoria(c), rutaAudio(r) {}
-};
-
 class ArtistaWindow : public QMainWindow
 {
     Q_OBJECT
@@ -46,6 +34,9 @@ public:
     void EditarPerfil();
     void VistaPerfil();
 
+signals:
+    void randomModeChanged(bool enabled);
+
 
 private:
     Ui::ArtistaWindow *ui;
@@ -53,6 +44,13 @@ private:
     QMediaPlayer *media;
     QAudioOutput* audioOutput;
     QString currentSongPath;
+    Cancion currentSong;
+    QList<Cancion> canciones;
+
+    const QColor COLOR_ACTIVO = QColor(255, 50, 222);  // Azul activo
+    const QColor COLOR_INACTIVO = QColor(255, 255, 255); // Gris inactivo
+
+    bool m_autoPlayPending = false;
 
     QFileSystemWatcher *fileWatcher;
 
@@ -78,12 +76,18 @@ private:
     qint64 Mduration;
     QString rutaPortada = "";
 
+    //Completando el player
+    bool isRandom = false;
+    bool isLoop = false;
+    bool isUserSeeking = false;
+    qint64 seekPosition = 0;
+
     QString rutaImagen = "";
 
     struct AlbumTemp {
         QString titulo;
         QString portada;
-        QList<Song> canciones;
+        QList<Cancion> canciones;
     };
 
     AlbumTemp albumActual; // Para guardar temporalmente los datos del álbum
@@ -99,9 +103,11 @@ private slots:
 
     void on_lineEdit_editingFinished();
 
+    void loadSongs(const QString &genero);
+
     void loadSongs();
 
-    void playSong(const Cancion& cancion);
+    void playSong(Cancion& cancion);
 
     void durationChanged(qint64 duration);
 
@@ -117,33 +123,42 @@ private slots:
 
     void on_toolButton_limpiar_clicked();
 
-    void cargarAlbumesUsuario();
+    void cargarAlbumesUsuario(const QString& tipo);
 
     void mostrarDetalleAlbum(Album* album);
 
-    void onCancionSeleccionada(Cancion* cancion);
-
     void reproducirCancion(Cancion* cancion);
-
-    void reproducirAlbumCompleto(Album* album, int indiceInicial);
 
     void onCancionTerminada();
 
-    void handleMediaStatusChanged(QMediaPlayer::MediaStatus status);
-
-    void handleMediaError(QMediaPlayer::Error error, const QString &errorString);
-
-    void on_toolButton_next_clicked();
-
-    void on_toolButton_prev_clicked();
-
-    void handlePlaybackStateChanged(QMediaPlayer::PlaybackState state);
-
     void editarCancion(int cancionId);
+
     void eliminarCancion(int cancionId);
 
+    void agregarCancionAlAlbum(const Album* album);
 
+    void reproducirAlbumCompleto(const QList<Cancion*>& canciones, int indiceInicial);
 
+    void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
+
+    void onPlaybackStateChanged(QMediaPlayer::PlaybackState state);
+
+    void onDurationChanged(qint64 durationMs);
+
+    void on_toolButton_addSong_clicked();
+
+    void on_toolButton_loop_clicked();
+
+    void on_toolButton_random_clicked();
+
+    void updateRandomTooltip();
+    void updateLoopTooltip();
+
+    void onRandomModeToggled(bool checked);
+
+    void on_horizontalSlider_Audio_File_Duration_sliderPressed();
+    void on_horizontalSlider_Audio_File_Duration_sliderReleased();
+    void on_horizontalSlider_Audio_File_Duration_valueChanged(int value);
 };
 
 #endif // ARTISTAWINDOW_H

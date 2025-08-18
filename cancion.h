@@ -53,6 +53,7 @@ public:
     void setRutaPortada(const QString& newRuta) { rutaPortada = newRuta; }
     void setEstado(bool newEstado) { estado = newEstado; }
     void setRutaAudio(const QString& newRuta) { rutaAudio = newRuta; }
+    void setfechaRegistro(const QDateTime& newFecha) { fechaRegistro = newFecha; }
 
 
     void guardarEnArchivo(const QString& nombreArchivo = "canciones.dat") const;

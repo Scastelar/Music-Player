@@ -42,13 +42,20 @@ private:
 
     // Índices secundarios
     QHash<QString, int> usernameAId;       // Username → ID usuario
+
+    //CANCIONES
     QHash<QString, QList<int>> cancionesPorTitulo;  // Título → IDs de canciones
     QHash<QString, QList<int>> cancionesPorArtista; // Artista → IDs de canciones
+    QHash<QString, QList<int>> cancionesPorGenero; // Genero -> IDs de canciones
+
+    //ALBUMES
     QHash<QString, QList<int>> albumesPorTitulo;   // Título → IDs de álbumes
+    QHash<QString, QList<int>> albumesPorTipo;   // Tipo → IDs de álbumes
     QHash<int, QList<int>> albumesPorUsuario;      // UserID → IDs de sus álbumes
+
+    //PLAYLISTS
     QHash<QString, QList<int>> playlistsPorTitulo;     // Título → IDs de playlists
     QHash<int, QList<int>> playlistsPorUsuario;    // UserID → IDs de sus playlists
-    QHash<QString, QList<int>> cancionesPorGenero; // Genero -> IDs de canciones
 
 
     // Variables de estado
@@ -144,6 +151,7 @@ public:
     QList<Cancion*> buscarCancionesPorArtista(const QString& artista);
     QList<Cancion*> buscarCancionesPorGenero(const QString& genero);
     QList<Album*> buscarAlbumesPorNombre(const QString& nombre);
+    QList<Album*> buscarAlbumesPorTipo(const QString& tipo);
     QList<Album*> buscarAlbumesPorArtista(const int& artista);
     QList<Playlist*> buscarPlaylistsPorNombre(const QString& nombre);
 

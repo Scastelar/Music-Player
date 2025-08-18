@@ -59,8 +59,8 @@ void AlbumWidget::setupUI() {
     infoLayout->addStretch();  // Empuja el texto hacia arriba
 
     // Organizar en layout principal
-    mainLayout->addLayout(infoLayout);
     mainLayout->addWidget(coverLabel);
+    mainLayout->addLayout(infoLayout);
     mainLayout->addStretch();  // Espacio flexible a la derecha
 
     // Estilo del widget contenedor

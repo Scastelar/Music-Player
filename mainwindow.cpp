@@ -6,6 +6,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <QRegularExpressionValidator>
+#include <QFontDatabase>
 
 QString rutaImagen="";
 
@@ -15,6 +17,46 @@ MainWindow::MainWindow(QWidget *parent, Cuentas& manejo)
     , manejo(&manejo) // Guardamos la dirección de manejo que nos pasó main()
 {
     ui->setupUi(this);
+
+    int fontId = QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");
+    QStringList families = QFontDatabase::applicationFontFamilies(fontId);
+    if (!families.isEmpty()) {
+        Montserrat = families.at(0);  // ahora sí tienes el nombre real
+    }
+
+    if (!Montserrat.isEmpty()) {
+        QString style = R"(
+        QWidget {
+            background-color: rgb(40,40,40);
+            color: white;
+            font-family: 'FONT';
+        }
+        QLabel {
+            font-size: 16px;
+
+        }
+
+        QLineEdit {
+            border: 1px solid #CCC;
+            border-radius: 8px;
+            padding: 5px 10px;
+            background-color: white;
+            color: black;
+        }
+        QTextEdit {
+            background-color: white;
+            color: rgb(40,40,40);
+        }
+        QComboBox {
+            background-color: white;
+            color: rgb(40,40,40);
+        }
+    )";
+        style.replace("FONT", Montserrat);
+        this->setStyleSheet(style);
+    } else {
+        qDebug() << "Error: Montserrat no está cargado correctamente.";
+    }
 }
 
 

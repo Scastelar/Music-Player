@@ -8,7 +8,7 @@
 #include <QMenu>
 #include <QGridLayout>
 
-SongWidget::SongWidget(const Cancion& cancion, QWidget *parent)
+SongWidget::SongWidget(Cancion& cancion, QWidget *parent)
     : QWidget(parent), m_cancion(cancion) {
 
     setFixedSize(180, 230);
@@ -86,9 +86,13 @@ void SongWidget::onDeleteSong() {
 
 
 void SongWidget::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton)
+    if (event->button() == Qt::LeftButton) {
+        qDebug() << "Click en canción:" << m_cancion.getTitulo();
         emit songClicked(m_cancion);
-    QWidget::mousePressEvent(event);
+        event->accept(); // Asegura que el evento no se propague
+    } else {
+        QWidget::mousePressEvent(event);
+    }
 }
 
 void SongWidget::enterEvent(QEnterEvent *event) {

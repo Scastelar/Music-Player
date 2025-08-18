@@ -14,7 +14,9 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QDebug>
-
+#include <QTimer>
+#include <QRandomGenerator>
+#include <QMediaMetaData>
 
 
 ArtistaWindow::ArtistaWindow(QWidget *parent,Cuentas& manejo)
@@ -24,9 +26,28 @@ ArtistaWindow::ArtistaWindow(QWidget *parent,Cuentas& manejo)
 {
     ui->setupUi(this);
 
+    int fontId = QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");
+    QStringList families = QFontDatabase::applicationFontFamilies(fontId);
+    if (!families.isEmpty()) {
+        Montserrat = families.at(0);  // ahora sí tienes el nombre real
+    }
+
+    int iconFontId = QFontDatabase::addApplicationFont(":/MaterialIcons-Regular.ttf");
+    MaterialIcons = QFontDatabase::applicationFontFamilies(iconFontId).at(0);
+
     usuario = manejo.getIdUsuarioActual();
     admin = dynamic_cast<Administrador*>(usuario);
     rutaImagen = usuario->getRutaImagen();
+
+    // Estado inicial
+    isPaused = true;
+    m_autoPlayPending =  false;
+    isMuted = false;
+    setIcono(ui->toolButton_play, 0xe037, 20); // Icono de play inicial
+
+    loadSongs();
+    initComponents();
+    cargarAlbumesUsuario("");
 
     //Actualizar Archivos en componentes
     fileWatcher = new QFileSystemWatcher(this);
@@ -34,96 +55,338 @@ ArtistaWindow::ArtistaWindow(QWidget *parent,Cuentas& manejo)
     fileWatcher->addPath(archivoCanciones);
     connect(fileWatcher, &QFileSystemWatcher::fileChanged, this, &ArtistaWindow::onCancionesFileChanged);
 
-    connect(media, &QMediaPlayer::mediaStatusChanged, this, [this](QMediaPlayer::MediaStatus status) {
-        if (status == QMediaPlayer::LoadedMedia) {
-            media->play();
-        }
-    });
-
-    // En el constructor de ArtistaWindow
     media = new QMediaPlayer(this);
     audioOutput = new QAudioOutput(this);
     media->setAudioOutput(audioOutput);
 
-    // Configuración de buffers y tiempo de espera
-    media->bufferProgress();
-    media->setPlaybackRate(1.0); // Velocidad normal
-
     // Configuración de volumen
-    audioOutput->setVolume(0.3);
+    audioOutput->setMuted(false);
+    audioOutput->setVolume(ui->horizontalSlider_Audio_Volume->value() / 100.0);
     ui->horizontalSlider_Audio_Volume->setRange(1, 100);
     ui->horizontalSlider_Audio_Volume->setValue(30);
 
-    // Conexiones esenciales
-    connect(media, &QMediaPlayer::durationChanged, this, &ArtistaWindow::durationChanged);
+    isRandom = false;
+    isLoop = false;
+    updateRandomTooltip();
+    updateLoopTooltip();
+
+    media->stop();
+
+
     connect(media, &QMediaPlayer::positionChanged, this, &ArtistaWindow::positionChanged);
-    connect(media, &QMediaPlayer::mediaStatusChanged, this, &ArtistaWindow::handleMediaStatusChanged);
-    connect(media, &QMediaPlayer::errorOccurred, this, &ArtistaWindow::handleMediaError);
+    connect(media, &QMediaPlayer::mediaStatusChanged, this, &ArtistaWindow::onMediaStatusChanged);
+    connect(media, &QMediaPlayer::durationChanged, this, &ArtistaWindow::onDurationChanged);
 
-    // Estado inicial
-    isPaused = true;
-    isMuted = false;
-    setIcono(ui->toolButton_play, 0xe037, 20); // Icono de play inicial
+   // Nueva conexión para manejar el cambio de posición del slider
+   connect(ui->horizontalSlider_Audio_File_Duration, &QSlider::sliderPressed,
+           this, &ArtistaWindow::on_horizontalSlider_Audio_File_Duration_sliderPressed);
+   connect(ui->horizontalSlider_Audio_File_Duration, &QSlider::sliderReleased,
+           this, &ArtistaWindow::on_horizontalSlider_Audio_File_Duration_sliderReleased);
+   connect(ui->horizontalSlider_Audio_File_Duration, &QSlider::valueChanged,
+           this, &ArtistaWindow::on_horizontalSlider_Audio_File_Duration_valueChanged);
 
-    loadSongs();
-    cargarAlbumesUsuario();
-    initComponents();
+
+
 }
+
+
 
 ArtistaWindow::~ArtistaWindow()
 {
     delete ui;
 }
 
-void ArtistaWindow::playSong(const Cancion& cancion) {
-    // 1. Actualizar la interfaz
+void ArtistaWindow::playSong(Cancion& cancion) {
     ui->label_3->setText(cancion.getTitulo());
     ui->label_2->setText(cancion.getArtista());
 
-    // 2. Cargar portada
+    // Cargar portada
     QPixmap cover(cancion.getRutaPortada());
     if(cover.isNull()) {
         cover = QPixmap(":/images/default_cover.png");
     }
-    ui->label->setPixmap(cover.scaled(ui->label->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ui->label->setPixmap(cover.scaled(ui->label->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
-    // 3. Detener reproducción actual si hay una
-    media->stop();
+    // Detener la reproducción actual y resetear
+    //media->stop();
 
-    // 4. Cargar nueva canción
-    currentSongPath = cancion.getRutaAudio();
-    media->setSource(QUrl::fromLocalFile(currentSongPath));
+    // Buscar el índice actual en m_cancionesAlbumActual
+    for (int i = 0; i < m_cancionesAlbumActual.size(); ++i) {
+        if (m_cancionesAlbumActual.at(i)->getId() == cancion.getId()) {
+            m_indiceAlbumActual = i;
+            break;
+        }
+    }
 
-    // 5. Actualizar botón (mostrar pausa porque se reproducirá automáticamente)
-    setIcono(ui->toolButton_play, 0xe034, 20);
+    // Configurar la nueva fuente
+    media->setSource(QUrl::fromLocalFile(cancion.getRutaAudio()));
+
+    // Preparar para reproducir
     isPaused = false;
+    m_autoPlayPending = true;
+    setIcono(ui->toolButton_play, 0xe034, 20);
 
-    // La reproducción comenzará cuando el media esté cargado (handleMediaStatusChanged)
+    media->play();
 }
 
-void ArtistaWindow::handleMediaStatusChanged(QMediaPlayer::MediaStatus status) {
-    qDebug() << "Estado del media:" << status;
 
-    switch(status) {
-    case QMediaPlayer::LoadedMedia:
+void ArtistaWindow::onMediaStatusChanged(QMediaPlayer::MediaStatus status) {
+    if ((status == QMediaPlayer::LoadedMedia || status == QMediaPlayer::BufferedMedia)
+        && m_autoPlayPending && !isPaused) {
+        qDebug() << "Media cargada -> reproduciendo automáticamente!";
+        m_autoPlayPending = false;
         media->play();
-        break;
-    case QMediaPlayer::EndOfMedia:
-        onCancionTerminada();
-        break;
-    case QMediaPlayer::InvalidMedia:
-        qDebug() << "Error: Media inválido";
-        break;
-    default:
-        break;
     }
 }
 
-void ArtistaWindow::handleMediaError(QMediaPlayer::Error error, const QString &errorString) {
-    qDebug() << "Error en reproductor:" << error << "-" << errorString;
-    QMessageBox::warning(this, "Error de reproducción",
-                         QString("No se pudo reproducir la canción:\n%1").arg(errorString));
+
+
+void ArtistaWindow::onPlaybackStateChanged(QMediaPlayer::PlaybackState state) {
+    qDebug() << "playbackStateChanged:" << state;
+    // Opcional: si por alguna razón vuelve a Stopped justo después de querer tocar,
+    // reintenta una sola vez si aún estaba pendiente (defensivo).
+    if (state == QMediaPlayer::StoppedState && m_autoPlayPending) {
+        qDebug() << "Retry play (stopped while pending)";
+        m_autoPlayPending = false;
+        QMetaObject::invokeMethod(media, [this](){ media->play(); }, Qt::QueuedConnection);
+    }
 }
+
+void ArtistaWindow::onDurationChanged(qint64 durationMs) {
+    Mduration = durationMs / 1000;
+    ui->horizontalSlider_Audio_File_Duration->setMaximum(Mduration);
+
+    updateduration(0);
+
+
+    if (m_autoPlayPending) {
+        m_autoPlayPending = false;
+        QMetaObject::invokeMethod(media, [this](){
+            media->play();
+        }, Qt::QueuedConnection);
+    }
+
+    if (ui->horizontalSlider_Audio_File_Duration->value()==Mduration){
+
+    }
+}
+
+void ArtistaWindow::updateduration(qint64 currentSeconds) {
+    if (Mduration < 0) return;
+
+    QTime current(0,0); current = current.addSecs(static_cast<int>(currentSeconds));
+    QTime total(0,0);   total   = total.addSecs(static_cast<int>(Mduration));
+
+    const QString format = (Mduration > 3600) ? "hh:mm:ss" : "mm:ss";
+    ui->label_Value_1->setText(current.toString(format));
+    ui->label_Value_2->setText(total.toString(format));
+}
+
+
+void ArtistaWindow::on_horizontalSlider_Audio_Volume_valueChanged(int value)
+{
+    audioOutput->setVolume(value / 100.0);
+}
+
+void ArtistaWindow::on_toolButton_play_clicked() {
+    if (media->playbackState() == QMediaPlayer::PlayingState) {
+        media->pause();
+        isPaused = true;
+        setIcono(ui->toolButton_play, 0xe037, 20); // icono play
+    } else {
+        // Si hay autoplay pendiente, ignóralo; solo juega si no está pendiente
+        if (!m_autoPlayPending) {
+            media->play();
+        }
+        isPaused = false;
+        setIcono(ui->toolButton_play, 0xe034, 20); // icono pausa
+    }
+}
+
+
+void ArtistaWindow::on_toolButton_Volume_clicked()
+{
+    if(!isMuted){
+        ui->toolButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolumeMuted));
+        isMuted = true;
+        audioOutput->setMuted(true);
+    }else{
+        ui->toolButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
+        isMuted = false;
+        audioOutput->setMuted(false);
+    }
+}
+
+void ArtistaWindow::durationChanged(qint64 duration) {
+    Mduration = duration / 1000;
+    ui->horizontalSlider_Audio_File_Duration->setMaximum(Mduration);
+    updateduration(0); // Resetear el tiempo actual
+}
+
+void ArtistaWindow::positionChanged(qint64 progress)
+{
+    if (!isUserSeeking) {
+        ui->horizontalSlider_Audio_File_Duration->setValue(progress / 1000);
+        updateduration(progress / 1000);
+    }
+}
+
+
+
+void ArtistaWindow::on_horizontalSlider_Audio_File_Duration_sliderPressed()
+{
+    isUserSeeking = true;
+}
+
+
+void ArtistaWindow::on_horizontalSlider_Audio_File_Duration_sliderReleased()
+{
+    isUserSeeking = false;
+    media->setPosition(ui->horizontalSlider_Audio_File_Duration->value() * 1000);
+}
+
+
+void ArtistaWindow::on_horizontalSlider_Audio_File_Duration_valueChanged(int value)
+{
+    if (isUserSeeking) {
+        updateduration(value);
+    }
+}
+
+
+void ArtistaWindow::reproducirCancion(Cancion* cancion) {
+    playSong(*cancion);
+    qDebug() << "Reproduciendo:" << cancion->getTitulo();
+}
+
+void ArtistaWindow::reproducirAlbumCompleto(const QList<Cancion*>& canciones, int indiceInicial) {
+    m_cancionesAlbumActual = canciones;
+    m_indiceAlbumActual = indiceInicial;
+
+    if (!m_cancionesAlbumActual.isEmpty() &&
+        m_indiceAlbumActual >= 0 &&
+        m_indiceAlbumActual < m_cancionesAlbumActual.size()) {
+        playSong(*m_cancionesAlbumActual.at(m_indiceAlbumActual));
+    }
+}
+
+void ArtistaWindow::loadSongs()
+{
+    clearGrid();
+
+    canciones.clear();
+    // Buscar canciones del artista actual usando el índice secundario
+    QList<Cancion*> temp = manejo->buscarCancionesPorArtista(usuario->getNombreUsuario());
+
+    if(temp.isEmpty()) {
+        QLabel *emptyLabel = new QLabel("No hay canciones disponibles");
+        emptyLabel->setStyleSheet("color: #777; font-size: 16px;");
+        ui->gridLayout_5->addWidget(emptyLabel, 0, 0, Qt::AlignCenter);
+        return;
+    }
+
+    for(Cancion* ptr : temp) {
+        canciones.append(*ptr);  // Hacemos una copia
+    }
+
+    // Calcular número de columnas basado en el ancho del gridWidget
+    int columnCount = qMax(1, ui->scrollArea->width() / 200);
+
+    // Añadir canciones al grid
+    for(int i = 0; i < canciones.size(); ++i) {
+        SongWidget *songWidget = new SongWidget(canciones[i],this);
+        connect(songWidget, &SongWidget::songClicked, this, &ArtistaWindow::playSong);
+        connect(songWidget, &SongWidget::editSongRequested, this, &ArtistaWindow::editarCancion);
+        connect(songWidget, &SongWidget::deleteSongRequested, this, &ArtistaWindow::eliminarCancion);
+
+        int row = i / columnCount;
+        int col = i % columnCount;
+        ui->gridLayout_5->addWidget(songWidget, row, col, Qt::AlignCenter);
+    }
+}
+
+
+void ArtistaWindow::loadSongs(const QString &genero)
+{
+    clearGrid();
+
+    QList<Cancion*> cancionesFiltradas;
+
+    if (genero.isEmpty()) {
+        // Sin filtro → mostrar todas del artista actual
+        cancionesFiltradas = manejo->buscarCancionesPorArtista(usuario->getNombreUsuario());
+    } else {
+        // Buscar por género
+        QList<Cancion*> cancionesGenero = manejo->buscarCancionesPorGenero(genero);
+
+        // Filtrar por artista actual
+        for (Cancion* c : cancionesGenero) {
+            if (c->getArtista() == usuario->getNombreUsuario()) {
+                cancionesFiltradas.append(c);
+            }
+        }
+    }
+
+    if (cancionesFiltradas.isEmpty()) {
+        QLabel *emptyLabel = new QLabel("No hay canciones disponibles");
+        emptyLabel->setStyleSheet("color: #777; font-size: 16px;");
+        ui->gridLayout_5->addWidget(emptyLabel, 0, 0, Qt::AlignCenter);
+        return;
+    }
+
+    // Calcular columnas
+    int columnCount = qMax(1, ui->scrollArea->width() / 200);
+
+    // Añadir canciones al grid
+    for (int i = 0; i < cancionesFiltradas.size(); ++i) {
+        SongWidget *songWidget = new SongWidget(*cancionesFiltradas[i]);
+        connect(songWidget, &SongWidget::songClicked, this, &ArtistaWindow::playSong);
+        connect(songWidget, &SongWidget::editSongRequested, this, &ArtistaWindow::editarCancion);
+        connect(songWidget, &SongWidget::deleteSongRequested, this, &ArtistaWindow::eliminarCancion);
+
+        int row = i / columnCount;
+        int col = i % columnCount;
+        ui->gridLayout_5->addWidget(songWidget, row, col, Qt::AlignCenter);
+    }
+}
+
+//Mostrar Albumes
+void ArtistaWindow::cargarAlbumesUsuario(const QString& tipo) {
+    ui->listWidget->clear();
+
+    QList<Album*> albumesFiltrados;
+
+    //miau
+    if (tipo.isEmpty()) {
+        // Sin filtro → mostrar todos del artista actual
+        albumesFiltrados = manejo->buscarAlbumesPorArtista(usuario->getId());
+    } else {
+        // Buscar por género
+        QList<Album*> albumesTipo = manejo->buscarAlbumesPorTipo(tipo);
+
+        // Filtrar por artista actual
+        for (Album* a : albumesTipo) {
+            if (a->getIdArtista() == usuario->getId()) {
+                albumesFiltrados.append(a);
+            }
+        }
+    }
+
+    for (Album* album : albumesFiltrados) {
+        AlbumWidget* albumWidget = new AlbumWidget(*album, manejo); // Pasamos cuentas
+
+        QListWidgetItem* item = new QListWidgetItem();
+        item->setSizeHint(albumWidget->sizeHint());
+
+        ui->listWidget->addItem(item);
+        ui->listWidget->setItemWidget(item, albumWidget);
+
+        connect(albumWidget, &AlbumWidget::clicked, this, [this, album]() {
+            mostrarDetalleAlbum(album);
+        });
+    }
+}
+
 
 
 //Agrega temporalmente canciones al list widget
@@ -137,47 +400,15 @@ void ArtistaWindow::actualizarListaCanciones() {
 
     for (const auto& cancion : albumActual.canciones) {
         QListWidgetItem* item = new QListWidgetItem;
-        item->setText(QString("%1 - %2").arg(cancion.titulo, cancion.genero));
+        item->setText(QString("%1 - %2").arg(cancion.getTitulo(), cancion.getGenero()));
 
         // Guarda solo la ruta (que es lo único que probablemente necesites)
-        item->setData(Qt::UserRole, cancion.rutaAudio);
+        item->setData(Qt::UserRole, cancion.getRutaAudio());
 
         ui->listaCancionesWidget->addItem(item);
     }
 }
 
-//Carga las canciones del catalogo
-// *ignorar canciones eliminadas/ con ruta invalida
-void ArtistaWindow::loadSongs()
-{
-    clearGrid();
-
-    // Buscar canciones del artista actual usando el índice secundario
-            QList<Cancion*> cancionesArtista = manejo->buscarCancionesPorArtista(usuario->getNombreUsuario());
-
-    if(cancionesArtista.isEmpty()) {
-        QLabel *emptyLabel = new QLabel("No hay canciones disponibles");
-        emptyLabel->setStyleSheet("color: #777; font-size: 16px;");
-        ui->gridLayout_6->addWidget(emptyLabel, 0, 0, Qt::AlignCenter);
-        return;
-    }
-
-    // Calcular número de columnas basado en el ancho del gridWidget
-    int columnCount = qMax(1, ui->scrollArea->width() / 200);
-
-    // Añadir canciones al grid
-    for(int i = 0; i < cancionesArtista.size(); ++i) {
-        // Asumiendo que SongWidget puede trabajar con Cancion* o necesitarás desreferenciar
-        SongWidget *songWidget = new SongWidget(*cancionesArtista[i]);
-        connect(songWidget, &SongWidget::songClicked, this, &ArtistaWindow::playSong);
-        connect(songWidget, &SongWidget::editSongRequested, this, &ArtistaWindow::editarCancion);
-        connect(songWidget, &SongWidget::deleteSongRequested, this, &ArtistaWindow::eliminarCancion);
-
-        int row = i / columnCount;
-        int col = i % columnCount;
-        ui->gridLayout_6->addWidget(songWidget, row, col, Qt::AlignCenter);
-    }
-}
 
 void ArtistaWindow::editarCancion(int cancionId) {
     Cancion* cancion = manejo->buscarCancionPorId(cancionId);
@@ -216,7 +447,7 @@ void ArtistaWindow::eliminarCancion(int cancionId){
 void ArtistaWindow::clearGrid()
 {
     QLayoutItem *child;
-    while ((child = ui->gridLayout_6->takeAt(0)) != nullptr) {
+    while ((child = ui->gridLayout_5->takeAt(0)) != nullptr) {
         delete child->widget();
         delete child;
     }
@@ -247,10 +478,13 @@ void ArtistaWindow::verificarYCrearAlbum() {
 
         // Mostrar el botón para agregar canciones
         ui->toolButton_addSong->setEnabled(true);
-        ui->toolButton_upload->setEnabled(false);
+        ui->toolButton_addSong->setStyleSheet(
+            "QToolButton { color: #DE5D83; }"
+            "QToolButton:hover { color: #A94064; }"
+            );
         QMessageBox::information(this, "Álbum creado",QString("Álbum '%1' listo para agregar canciones").arg(titulo));
-
-
+        ui->toolButton_upload->setEnabled(false);
+        ui->lineEditAlbum->setEnabled(false);
     }
 }
 void ArtistaWindow::finalizarAlbum() {
@@ -271,14 +505,12 @@ void ArtistaWindow::finalizarAlbum() {
 
     // Procesar cada canción
     for (const auto& cancion : albumActual.canciones) {
-        Cancion* cancionReal = new Cancion(0,cancion.titulo,usuario->getNombreUsuario(),
-                                           albumActual.titulo,cancion.genero,cancion.categoria,
-                                           cancion.rutaAudio,albumActual.portada);
-        manejo->agregarCancionAlbum(albumId,*cancionReal);
+        manejo->agregarCancionAlbum(albumId,cancion);
     }
+
     QMessageBox::information(this, "Exito","Tu album ahora esta disponible en el catalogo!");
     loadSongs();
-    cargarAlbumesUsuario();
+    cargarAlbumesUsuario("");
 
     // Limpiar para el próximo álbum
     ui->labelPortada->clear();
@@ -286,81 +518,224 @@ void ArtistaWindow::finalizarAlbum() {
     albumActual = AlbumTemp();
     ui->listaCancionesWidget->clear();
     ui->toolButton_addSong->setEnabled(false);
+    ui->lineEditAlbum->setEnabled(true);
+    ui->toolButton_addSong->setStyleSheet(
+        "QToolButton { color: #white; }"
+        "QToolButton:hover { color: #white; }"
+        );
 }
 
-//Mostrar Albumes
-void ArtistaWindow::cargarAlbumesUsuario() {
-    ui->listWidget_6->clear();
 
-    QList<Album*> albumes = manejo->buscarAlbumesPorArtista(usuario->getId());
 
-    for (Album* album : albumes) {
-        AlbumWidget* albumWidget = new AlbumWidget(*album, manejo); // Pasamos cuentas
+void ArtistaWindow::agregarCancionAlAlbum(const Album* album) {
+    QDialog* popup = new QDialog(this);
+    popup->setWindowTitle("Registrar Canción");
+    popup->setFixedSize(400, 330);
+    popup->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
 
-        QListWidgetItem* item = new QListWidgetItem();
-        item->setSizeHint(albumWidget->sizeHint());
+    QVBoxLayout* layout = new QVBoxLayout(popup);
+    QFormLayout* formLayout = new QFormLayout();
 
-        ui->listWidget_6->addItem(item);
-        ui->listWidget_6->setItemWidget(item, albumWidget);
+    QLineEdit* tituloEdit = new QLineEdit(popup);
+    formLayout->addRow("Título:", tituloEdit);
 
-        connect(albumWidget, &AlbumWidget::clicked, this, [this, album]() {
-            mostrarDetalleAlbum(album);
-        });
+    QComboBox* generoCombo = new QComboBox(popup);
+    generoCombo->addItems({"Clásico", "Pop", "Electrónica", "Rock", "Reguetón", "Cristianos", "Corridos"});
+    formLayout->addRow("Género:", generoCombo);
+
+    QComboBox* categoriaCombo = new QComboBox(popup);
+    categoriaCombo->addItems({"Recomendado", "Favorito", "Infantil", "Instrumental"});
+    formLayout->addRow("Categoría:", categoriaCombo);
+
+    QHBoxLayout* rutaLayout = new QHBoxLayout();
+    QLineEdit* rutaEdit = new QLineEdit(popup);
+    QPushButton* buscarBtn = new QPushButton("Buscar", popup);
+    rutaLayout->addWidget(rutaEdit);
+    rutaLayout->addWidget(buscarBtn);
+    formLayout->addRow("Ruta del audio:", rutaLayout);
+
+    layout->addLayout(formLayout);
+
+    QHBoxLayout* botonesLayout = new QHBoxLayout();
+    QPushButton* btnAceptar = new QPushButton("Aceptar", popup);
+    QPushButton* btnCancelar = new QPushButton("Cancelar", popup);
+    botonesLayout->addWidget(btnAceptar);
+    botonesLayout->addWidget(btnCancelar);
+    layout->addLayout(botonesLayout);
+
+    connect(buscarBtn, &QPushButton::clicked, [rutaEdit]() {
+        QString fileName = QFileDialog::getOpenFileName(nullptr,"Seleccionar archivo de audio", "", "Audio Files (*.mp3 *.wav *.ogg)");
+        if (!fileName.isEmpty()) {
+            rutaEdit->setText(fileName);
+        }
+    });
+
+    connect(btnAceptar, &QPushButton::clicked, [this, popup, album, tituloEdit, generoCombo, categoriaCombo, rutaEdit]() {
+        if (tituloEdit->text().isEmpty() || rutaEdit->text().isEmpty()) {
+            QMessageBox::warning(popup, "Error", "Todos los campos son obligatorios");
+            return;
+        }
+
+        Cancion* nuevaCancion = new Cancion(
+            0, // ID temporal
+            tituloEdit->text(),
+            usuario->getNombreUsuario(),
+            album->getNombre(),
+            generoCombo->currentText(),
+            categoriaCombo->currentText(),
+            rutaEdit->text(),
+            album->getPortada()
+            );
+
+        manejo->agregarCancionAlbum(album->getId(), *nuevaCancion);
+
+        popup->accept();
+    });
+
+    connect(btnCancelar, &QPushButton::clicked, popup, &QDialog::reject);
+
+    popup->exec();
+}
+
+void ArtistaWindow::on_toolButton_random_clicked()
+{
+    isRandom = !isRandom;
+
+    // Si activamos random, desactivamos loop
+    if (isRandom && isLoop) {
+        isLoop = false;
+        ui->toolButton_loop->setStyleSheet(QString("QToolButton { color: %1; }").arg(COLOR_INACTIVO.name()));
+        updateLoopTooltip();
     }
+
+    // Cambiar color según el estado
+    ui->toolButton_random->setStyleSheet(QString("QToolButton { color: %1; }")
+                                             .arg(isRandom ? COLOR_ACTIVO.name() : COLOR_INACTIVO.name()));
+
+    updateRandomTooltip();
+}
+
+void ArtistaWindow::on_toolButton_loop_clicked()
+{
+    isLoop = !isLoop;
+
+    // Si activamos loop, desactivamos random
+    if (isLoop && isRandom) {
+        isRandom = false;
+        ui->toolButton_random->setStyleSheet(QString("QToolButton { color: %1; }").arg(COLOR_INACTIVO.name()));
+        updateRandomTooltip();
+    }
+
+    // Cambiar color según el estado
+    ui->toolButton_loop->setStyleSheet(QString("QToolButton { color: %1; }")
+                                           .arg(isLoop ? COLOR_ACTIVO.name() : COLOR_INACTIVO.name()));
+
+    updateLoopTooltip();
+}
+
+void ArtistaWindow::updateRandomTooltip()
+{
+    QString tooltip = isRandom ?
+                          tr("Modo aleatorio activado\nClic para desactivar") :
+                          tr("Modo aleatorio desactivado\nClic para activar");
+
+    ui->toolButton_random->setToolTip(tooltip);
+}
+
+void ArtistaWindow::updateLoopTooltip()
+{
+    QString tooltip = isLoop ?
+                          tr("Modo repetición activado\nClic para desactivar") :
+                          tr("Modo repetición desactivado\nClic para activar");
+
+    ui->toolButton_loop->setToolTip(tooltip);
+}
+
+
+void ArtistaWindow::onCancionTerminada()
+{
+    if (m_cancionesAlbumActual.isEmpty()) return;
+
+    if (isLoop) {
+        // Repetir la misma canción
+        media->setPosition(0);
+        media->play();
+        return;
+    }
+
+    // Determinar la siguiente canción según el modo random
+    int nextIndex;
+    if (isRandom) {
+        // Para evitar que se repita la misma canción si hay más de una
+        if (m_cancionesAlbumActual.size() > 1) {
+            do {
+                nextIndex = QRandomGenerator::global()->bounded(m_cancionesAlbumActual.size());
+            } while (nextIndex == m_indiceAlbumActual);
+        } else {
+            nextIndex = 0; // Solo hay una canción
+        }
+    } else {
+        nextIndex = (m_indiceAlbumActual + 1) % m_cancionesAlbumActual.size();
+    }
+
+    // Actualizar el índice y reproducir
+    m_indiceAlbumActual = nextIndex;
+    playSong(*m_cancionesAlbumActual.at(m_indiceAlbumActual));
+}
+
+
+void ArtistaWindow::onRandomModeToggled(bool checked) {
+    isRandom = checked;
+    emit randomModeChanged(checked);
 }
 
 void ArtistaWindow::mostrarDetalleAlbum(Album* album) {
-    AlbumDetailWindow* detailWindow = new AlbumDetailWindow(*album, manejo, this);
+    AlbumDetailWindow* detailWindow = new AlbumDetailWindow(*album, manejo, nullptr);
 
     int pageIndex = ui->stackedWidget->addWidget(detailWindow);
     ui->stackedWidget->setCurrentIndex(pageIndex);
 
-    connect(detailWindow, &AlbumDetailWindow::destroyed, this, [this, pageIndex]() {
-        ui->stackedWidget->removeWidget(ui->stackedWidget->widget(pageIndex));
+    detailWindow->setRandomMode(isRandom);
+
+    connect(detailWindow, &AlbumDetailWindow::destroyed, this, [this, detailWindow]() {
+        ui->stackedWidget->removeWidget(detailWindow);
     });
 
     connect(detailWindow, &AlbumDetailWindow::solicitarReproduccionCancion,
             this, &ArtistaWindow::reproducirCancion);
 
+
+    // Modificar la conexión en mostrarDetalleAlbum
     connect(detailWindow, &AlbumDetailWindow::solicitarReproduccionAlbum,
             this, &ArtistaWindow::reproducirAlbumCompleto);
 
     // Conectar botones de navegación
-    connect(ui->toolButton_next, &QToolButton::clicked,
-            detailWindow, &AlbumDetailWindow::reproducirSiguiente);
+    connect(ui->toolButton_next, &QToolButton::clicked, this, [this, detailWindow]() {
+        if (isRandom) {
+            // Forzar modo aleatorio incluso si la ventana de detalle no está sincronizada
+            detailWindow->setRandomMode(true);
+        }
+        detailWindow->reproducirSiguiente();
+    });
+
+    connect(this, &ArtistaWindow::randomModeChanged, detailWindow, [detailWindow](bool enabled) {
+        detailWindow->setRandomMode(enabled);
+      });
 
     connect(ui->toolButton_prev, &QToolButton::clicked,
             detailWindow, &AlbumDetailWindow::reproducirAnterior);
-}
 
-void ArtistaWindow::reproducirCancion(Cancion* cancion) {
-    playSong(*cancion);
-    qDebug() << "Reproduciendo:" << cancion->getTitulo();
-}
+    connect(detailWindow, &AlbumDetailWindow::agregarCancionAlAlbum,
+            this, &ArtistaWindow::agregarCancionAlAlbum);
 
-void ArtistaWindow::reproducirAlbumCompleto(Album* album, int indiceInicial) {
-    m_cancionesAlbumActual.clear();
-    for (int id : album->getCanciones()) {
-        if (Cancion* cancion = manejo->buscarCancionPorId(id)) {
-            m_cancionesAlbumActual.append(cancion);
+    // Conexión para manejar el final de la canción
+    connect(media, &QMediaPlayer::mediaStatusChanged, this, [=](QMediaPlayer::MediaStatus status) {
+        if (status == QMediaPlayer::EndOfMedia) {
+            onCancionTerminada();
         }
-    }
+    });
 
-    m_albumActual = album;
-    m_indiceAlbumActual = indiceInicial;
-
-    if (indiceInicial >= 0 && indiceInicial < m_cancionesAlbumActual.size()) {
-        reproducirCancion(m_cancionesAlbumActual.at(indiceInicial));
-    }
 }
-
-void ArtistaWindow::onCancionTerminada() {
-    if (!m_cancionesAlbumActual.isEmpty()) {
-        m_indiceAlbumActual = (m_indiceAlbumActual + 1) % m_cancionesAlbumActual.size();
-        playSong(*m_cancionesAlbumActual.at(m_indiceAlbumActual));
-    }
-}
-
 
 
 //Editar Perfil
@@ -402,54 +777,6 @@ void ArtistaWindow::VistaPerfil(){
 }
 
 
-//Metodos y botones del MediaPlayer
-void ArtistaWindow::updateduration(qint64 duration)
-{
-    QString timestr;
-    if (duration > 0 && Mduration > 0)
-    {
-        QTime CurrentTime((duration/3600)%60, (duration/60)%60, duration%60, (duration*1000)%1000);
-        QTime totalTime((Mduration/3600)%60, (Mduration/60)%60, Mduration%60, (Mduration*1000)%1000);
-        QString format = "mm:ss";
-        if(Mduration > 3600){
-            format = "hh:mm:ss";
-        }
-        ui->label_Value_1->setText(CurrentTime.toString(format));
-        ui->label_Value_2->setText(totalTime.toString(format));
-    }
-}
-
-void ArtistaWindow::on_horizontalSlider_Audio_Volume_valueChanged(int value)
-{
-    audioOutput->setVolume(value / 100.0);
-}
-
-void ArtistaWindow::on_toolButton_play_clicked() {
-    if (media->playbackState() == QMediaPlayer::PlayingState) {
-        media->pause();
-        setIcono(ui->toolButton_play, 0xe037, 20); // Icono de play
-    } else {
-        // Si no hay fuente cargada pero hay canción actual
-        if (media->source().isEmpty() && !currentSongPath.isEmpty()) {
-            media->setSource(QUrl::fromLocalFile(currentSongPath));
-        }
-        media->play();
-        setIcono(ui->toolButton_play, 0xe034, 20); // Icono de pausa
-    }
-}
-
-void ArtistaWindow::on_toolButton_Volume_clicked()
-{
-    if(!isMuted){
-        ui->toolButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolumeMuted));
-        isMuted = true;
-        audioOutput->setMuted(true);
-    }else{
-        ui->toolButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
-        isMuted = false;
-        audioOutput->setMuted(false);
-    }
-}
 
 void ArtistaWindow::onCancionesFileChanged(const QString &path) {
     Q_UNUSED(path);
@@ -461,18 +788,6 @@ void ArtistaWindow::onCancionesFileChanged(const QString &path) {
     }
 }
 
-void ArtistaWindow::durationChanged(qint64 duration) {
-    Mduration = duration / 1000;
-    ui->horizontalSlider_Audio_File_Duration->setMaximum(Mduration);
-    updateduration(0); // Resetear el tiempo actual
-}
-
-void ArtistaWindow::positionChanged(qint64 progress) {
-    if (!ui->horizontalSlider_Audio_File_Duration->isSliderDown()) {
-        ui->horizontalSlider_Audio_File_Duration->setValue(progress / 1000);
-    }
-    updateduration(progress / 1000);
-}
 
 //Metodos y Botones del UI
 void ArtistaWindow::setIcono(QToolButton* boton, ushort unicode, int size){
@@ -492,7 +807,7 @@ void ArtistaWindow::on_toolButton_home_clicked()
 {
     ui->stackedWidget->setCurrentIndex(0);
     loadSongs();
-    cargarAlbumesUsuario();
+    cargarAlbumesUsuario("");
 
 }
 
@@ -511,38 +826,110 @@ void ArtistaWindow::on_toolButton_limpiar_clicked()
     ui->lineEditAlbum->clear();
 
     ui->toolButton_upload->setEnabled(true);
+    ui->lineEditAlbum->setEnabled(true);
+    ui->toolButton_addSong->setStyleSheet(
+        "QToolButton { color: #white; }"
+        "QToolButton:hover { color: #white; }"
+        );
 }
+
+
+void ArtistaWindow::on_toolButton_addSong_clicked()
+{
+    // Abrir diálogo para seleccionar archivos WAV
+    QStringList filePaths = QFileDialog::getOpenFileNames(
+        this,
+        tr("Seleccionar canciones"),
+        QDir::homePath(),
+        tr("Archivos de audio (*.wav *.WAV *.flac *.m4a)")
+        );
+
+    if (filePaths.isEmpty()) {
+        return; // El usuario canceló
+    }
+
+    QMediaPlayer player;
+    QAudioOutput audioOutput;
+    player.setAudioOutput(&audioOutput);
+
+    for (const QString &filePath : filePaths) {
+        player.setSource(QUrl::fromLocalFile(filePath));
+
+        // Esperar a que se carguen los metadatos (asíncrono)
+        QEventLoop loop;
+        QObject::connect(&player, &QMediaPlayer::metaDataChanged, &loop, &QEventLoop::quit);
+        loop.exec();
+
+        // Obtener metadatos
+        QString titulo = player.metaData().value(QMediaMetaData::Title).toString();
+        QString artista = player.metaData().value(QMediaMetaData::AlbumArtist).toString();
+        QString album = player.metaData().value(QMediaMetaData::AlbumTitle).toString();
+        QString genero = player.metaData().value(QMediaMetaData::Genre).toString();
+        int duracion = player.metaData().value(QMediaMetaData::Duration).toInt();
+        QDateTime fecha = player.metaData().value(QMediaMetaData::Date).toDateTime();
+
+        QString categoria = "Recomendado";
+
+        if (titulo.isEmpty()) titulo = QFileInfo(filePath).baseName();
+        if (artista.isEmpty()) artista = "-";
+        if (album.isEmpty()) album = "-";
+        if (genero.isEmpty()) genero = "-";
+        if (genero == "Clasica")categoria = "Instrumental";
+
+            Cancion nuevaCancion(
+            0,                           //Como es una cancion temporal no importa el ID
+            titulo,
+            usuario->getNombreUsuario(),
+            album,
+            genero,
+            categoria,
+            filePath,
+            albumActual.portada
+            );
+
+            nuevaCancion.setfechaRegistro(fecha);
+            nuevaCancion.setDuracion(duracion);
+            albumActual.canciones.append(nuevaCancion);
+    }
+    // Aquí podrías emitir una señal o actualizar la UI para reflejar los cambios
+    qDebug() << "Canciones agregadas al álbum:" << albumActual.titulo
+             << "Total canciones:" << albumActual.canciones.size();
+    actualizarListaCanciones();
+}
+
 
 
 void ArtistaWindow::initComponents()
 {
-    //Todo lo del mediaplayer
-    audioOutput->setVolume(ui->horizontalSlider_Audio_Volume->value() / 100.0);
 
-
-    ui->horizontalSlider_Audio_File_Duration->setRange(0, media->duration()/1000);
+    ui->toolButton_crear->setStyleSheet(
+        "QToolButton { background-color: #DE5D83; color: white; padding: 6px 12px; border-radius: 4px; }"
+        "QToolButton:hover { background-color: #A94064; }"
+        );
 
     connect(ui->lineEditAlbum, &QLineEdit::editingFinished, this, &ArtistaWindow::verificarYCrearAlbum, Qt::UniqueConnection);
     connect(ui->toolButton_upload, &QToolButton::clicked, this, &ArtistaWindow::seleccionarPortada, Qt::UniqueConnection);
-    connect(ui->toolButton_addSong, &QToolButton::clicked, this, &ArtistaWindow::initPopup, Qt::UniqueConnection);
+    //connect(ui->toolButton_addSong, &QToolButton::clicked, this, &ArtistaWindow::initPopup, Qt::UniqueConnection);
     connect(ui->toolButton_crear, &QToolButton::clicked, this, &ArtistaWindow::finalizarAlbum, Qt::UniqueConnection);
     // Poner el foco en el lineEdit del título
     ui->lineEditAlbum->setFocus();
 
+    connect(ui->toolButton_clasico,     &QToolButton::clicked, this, [=]() { loadSongs("Clasico"); });
+    connect(ui->toolButton_pop,         &QToolButton::clicked, [this]() { loadSongs("Pop"); });
+    connect(ui->toolButton_elec,        &QToolButton::clicked, [this]() { loadSongs("Electronica"); });
+    connect(ui->toolButton_rock,        &QToolButton::clicked, [this]() { loadSongs("Rock"); });
+    connect(ui->toolButton_regueton,    &QToolButton::clicked, [this]() { loadSongs("Regueton"); });
+    connect(ui->toolButton_cristianos,  &QToolButton::clicked, [this]() { loadSongs("Cristianos"); });
+    connect(ui->toolButton_corridos,    &QToolButton::clicked, [this]() { loadSongs("Corridos"); });
+
+    connect(ui->btnFilterAlbum,     &QToolButton::clicked, [this]() { cargarAlbumesUsuario("Album"); });
+    connect(ui->btnFilterEP,        &QToolButton::clicked, [this]() { cargarAlbumesUsuario("EP"); });
+    connect(ui->btnFilterSingle,    &QToolButton::clicked, [this]() { cargarAlbumesUsuario("Single"); });
 
     // Limpiar datos anteriores
     albumActual = AlbumTemp();
     ui->toolButton_addSong->setEnabled(false);
 
-
-    int fontId = QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");
-    QStringList families = QFontDatabase::applicationFontFamilies(fontId);
-    if (!families.isEmpty()) {
-        Montserrat = families.at(0);  // ahora sí tienes el nombre real
-    }
-
-    int iconFontId = QFontDatabase::addApplicationFont(":/MaterialIcons-Regular.ttf");
-    MaterialIcons = QFontDatabase::applicationFontFamilies(iconFontId).at(0);
 
 
     //Componentes UI
@@ -589,7 +976,6 @@ void ArtistaWindow::initComponents()
         }else {
             QMessageBox::warning(this, "Error", "Su perfil no fue modificado");
         }
-
     });
 
     QPixmap logo;
@@ -623,7 +1009,7 @@ void ArtistaWindow::initComponents()
 
         }
         QToolButton {
-            border: none;
+            border: none; border-radius: 8px;
         }
         QToolButton:hover {
             background-color: #DDDDDD;
@@ -644,6 +1030,14 @@ void ArtistaWindow::initComponents()
             background-color: white;
             color: rgb(40,40,40);
         }
+        QToolTip {
+               color: #ffffff;
+               background-color: #333333;
+               border: 1px solid #555555;
+               padding: 3px;
+               border-radius: 3px;
+               opacity: 230;
+            }
     )";
         style.replace("FONT", Montserrat);
         this->setStyleSheet(style);
@@ -702,17 +1096,6 @@ void ArtistaWindow::initComponents()
     setIcono(ui->toolButton_limpiar,0xe5d5,20);
     ui->toolButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
 
-    //Rating promedio
-    /*
-    int rating = 5;
-    QString stars = "";
-    for (int i = 0; i < rating; i++){
-        stars +=   (QChar(0xf0ec));
-    }
-    ui->label_ratingProm->setText(stars); //Star unicode
-    ui->label_ratingProm->setFont(QFont(MaterialIcons, 25));
-    ui->label_ratingProm->setStyleSheet("color: yellow; border: none;");
-    */
 }
 
 void ArtistaWindow::conectarMenu(){
@@ -727,6 +1110,7 @@ void ArtistaWindow::conectarMenu(){
         ui->stackedWidget->setCurrentIndex(3);
     });
 
+
     connect(verPerfil, &QAction::triggered, this, [this]() {
         qDebug() << "Ver Perfil";
         ui->stackedWidget->setCurrentIndex(5);
@@ -735,9 +1119,6 @@ void ArtistaWindow::conectarMenu(){
 
     connect(cerrarSesion, &QAction::triggered, this, [this]() {
         qDebug() << "Cerrar sesión";
-        if (!isPaused){
-            media->pause();
-        }
         manejo->cerrarSesion();
         MainWindow* m = new MainWindow(nullptr,*manejo);
         m->show();
@@ -746,89 +1127,7 @@ void ArtistaWindow::conectarMenu(){
 
 }
 
-void ArtistaWindow::initPopup() {
-    qDebug() << "Iniciando popup";
 
-    QDialog* popup = new QDialog(this);
-    popup->setWindowTitle("Registrar Canción");
-    popup->setFixedSize(400, 330);
-    popup->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
 
-    qDebug() << "Popup creado";
 
-    QVBoxLayout* layout = new QVBoxLayout(popup);
-
-    QFormLayout* formLayout = new QFormLayout();
-    QLineEdit* tituloEdit = new QLineEdit(popup);
-    formLayout->addRow("Título:", tituloEdit);
-
-    QComboBox* generoCombo = new QComboBox(popup);
-    generoCombo->addItems({"Clásico", "Pop", "Electrónica", "Rock", "Reguetón", "Cristianos", "Corridos"});
-    formLayout->addRow("Género:", generoCombo);
-
-    QComboBox* categoriaCombo = new QComboBox(popup);
-    categoriaCombo->addItems({"Recomendado", "Favorito", "Infantil", "Instrumental"});
-    formLayout->addRow("Categoría:", categoriaCombo);
-
-    QHBoxLayout* rutaLayout = new QHBoxLayout();
-    QLineEdit* rutaEdit = new QLineEdit(popup);
-    QPushButton* buscarBtn = new QPushButton("Buscar", popup);
-    rutaLayout->addWidget(rutaEdit);
-    rutaLayout->addWidget(buscarBtn);
-    formLayout->addRow("Ruta del audio:", rutaLayout);
-
-    layout->addLayout(formLayout);
-
-    QHBoxLayout* botonesLayout = new QHBoxLayout();
-    QPushButton* btnAceptar = new QPushButton("Aceptar", popup);
-    QPushButton* btnCancelar = new QPushButton("Cancelar", popup);
-    botonesLayout->addWidget(btnAceptar);
-    botonesLayout->addWidget(btnCancelar);
-    layout->addLayout(botonesLayout);
-
-    qDebug() << "Widgets listos, aplicando estilo";
-
-    popup->setStyleSheet("QDialog { background-color: white; }"); // simplificado
-
-    connect(buscarBtn, &QPushButton::clicked, [rutaEdit]() {
-        qDebug() << "Botón buscar presionado";
-        QString fileName = QFileDialog::getOpenFileName(nullptr,"Seleccionar archivo de audio", "/Users/compu/Music","Audio Files (*.mp3 *.wav *.ogg)");
-        if (!fileName.isEmpty()) {
-            rutaEdit->setText(fileName);
-            qDebug() << "Ruta seleccionada:" << fileName;
-        } else {
-            qDebug() << "No se seleccionó ningún archivo";
-        }
-    });
-
-    connect(btnAceptar, &QPushButton::clicked, [this, popup, tituloEdit, generoCombo, categoriaCombo, rutaEdit]() {
-        qDebug() << "Botón aceptar presionado";
-
-        if (tituloEdit->text().isEmpty() || rutaEdit->text().isEmpty()) {
-            QMessageBox::warning(popup, "Error", "Todos los campos son obligatorios");
-            return;
-        }
-
-        qDebug() << "Creando canción";
-
-        Song nuevaCancion;
-        nuevaCancion.titulo=tituloEdit->text();
-        nuevaCancion.genero=generoCombo->currentText();
-        nuevaCancion.categoria=categoriaCombo->currentText();
-        nuevaCancion.rutaAudio=rutaEdit->text();
-
-        albumActual.canciones.append(nuevaCancion);
-        qDebug() << "Canción agregada, actualizando lista";
-
-        actualizarListaCanciones();  //
-
-        popup->accept();
-    });
-
-    connect(btnCancelar, &QPushButton::clicked, popup, &QDialog::reject);
-
-    qDebug() << "Ejecutando popup...";
-    popup->exec();  // ← Si después de esto no hay logs, el programa muere aquí o en el botón aceptar
-    qDebug() << "Popup cerrado correctamente";
-}
 

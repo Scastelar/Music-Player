@@ -3,6 +3,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QDebug>
+#include <QPushButton>
+#include <QRandomGenerator>
 
 AlbumDetailWindow::AlbumDetailWindow(const Album& album, Cuentas* cuentas, QWidget* parent)
     : QWidget(parent), m_album(album), m_cuentas(cuentas) {
@@ -59,8 +61,32 @@ void AlbumDetailWindow::setupUI() {
     detailsLayout->addWidget(createDetailRow("Tipo", m_album.getTipoString()));
     detailsLayout->addWidget(createDetailRow("Fecha", m_album.getFechaCreacion().date().toString("dd/MM/yyyy")));
 
+    // Botón agregar canción
+    QPushButton* btnAgregar = new QPushButton("Agregar Canción");
+    btnAgregar->setStyleSheet(
+        "QPushButton { background-color: #DE5D83; color: white; padding: 6px 12px; border-radius: 4px; }"
+        "QPushButton:hover { background-color: #A94064; }"
+        );
+    connect(btnAgregar, &QPushButton::clicked, this, &AlbumDetailWindow::onAgregarCancionClicked);
+
+    headerLayout->addStretch();
+
+    QPushButton* btnPlayAlbum = new QPushButton("Reproducir");
+    btnPlayAlbum->setStyleSheet(
+        "QPushButton { background-color: #DE5D83; color: white; padding: 6px 12px; border-radius: 4px; }"
+        "QPushButton:hover { background-color: #A94064; }"
+        );
+    btnPlayAlbum->setFixedWidth(130);
+    connect(btnPlayAlbum, &QPushButton::clicked, this, [this]() {
+        if (!m_cancionesAlbum.isEmpty()) {
+            emit solicitarReproduccionAlbum(m_cancionesAlbum, 0);
+        }
+    });
+
+
     headerLayout->addWidget(cover);
     headerLayout->addLayout(detailsLayout, 1);
+    headerLayout->addWidget(btnAgregar);
 
     // 2. Lista de canciones
     QLabel* songsTitle = new QLabel("CANCIONES");
@@ -77,11 +103,13 @@ void AlbumDetailWindow::setupUI() {
     QLabel* numHeader = new QLabel("#");
     QLabel* titleHeader = new QLabel("TÍTULO");
     QLabel* artistHeader = new QLabel("ARTISTA");
+    QLabel* durationHeader = new QLabel("DURACIÓN");
     QLabel* dateHeader = new QLabel("FECHA");
 
     numHeader->setStyleSheet(headerStyle);
     titleHeader->setStyleSheet(headerStyle);
     artistHeader->setStyleSheet(headerStyle);
+    durationHeader->setStyleSheet(headerStyle);
     dateHeader->setStyleSheet(headerStyle);
 
     numHeader->setFixedWidth(30);
@@ -90,6 +118,7 @@ void AlbumDetailWindow::setupUI() {
     headerSongsLayout->addWidget(numHeader);
     headerSongsLayout->addWidget(titleHeader, 1);
     headerSongsLayout->addWidget(artistHeader, 1);
+    headerSongsLayout->addWidget(durationHeader, 1);
     headerSongsLayout->addWidget(dateHeader);
 
     // Configuración de la lista
@@ -112,6 +141,7 @@ void AlbumDetailWindow::setupUI() {
         );
 
     mainLayout->addWidget(header);
+    mainLayout->addWidget(btnPlayAlbum);
     mainLayout->addWidget(songsTitle);
     mainLayout->addWidget(songsHeader);
     mainLayout->addWidget(m_songsList, 1);
@@ -134,7 +164,7 @@ void AlbumDetailWindow::loadSongs() {
             // Widget personalizado
             QWidget* songWidget = new QWidget;
             QHBoxLayout* songLayout = new QHBoxLayout(songWidget);
-            songLayout->setContentsMargins(10, 0, 10, 0);
+            songLayout->setContentsMargins(10, 5, 10, 5);
             songLayout->setSpacing(10);
 
             // Índice visual (1-based)
@@ -152,6 +182,14 @@ void AlbumDetailWindow::loadSongs() {
             artistLabel->setMinimumWidth(150);
             artistLabel->setMinimumHeight(40);
 
+            // Duracion
+            QTime current(0,0); current = current.addSecs((cancion->getDuracion()));
+            const QString format = "mm:ss";
+            QLabel* durationLabel = new QLabel();
+            durationLabel->setText(current.toString(format));
+            durationLabel->setFixedWidth(80);
+            durationLabel->setMinimumHeight(40);
+
             // Fecha
             QLabel* dateLabel = new QLabel(cancion->getFechaRegistro().date().toString("dd/MM/yyyy"));
             dateLabel->setFixedWidth(80);
@@ -163,11 +201,13 @@ void AlbumDetailWindow::loadSongs() {
             titleLabel->setStyleSheet(labelStyle + "font-weight: bold;");
             artistLabel->setStyleSheet(labelStyle);
             dateLabel->setStyleSheet(labelStyle);
+            durationLabel->setStyleSheet(labelStyle);
 
             // Construir layout
             songLayout->addWidget(numLabel);
             songLayout->addWidget(titleLabel);
             songLayout->addWidget(artistLabel);
+            songLayout->addWidget(durationLabel);
             songLayout->addWidget(dateLabel);
 
             // Configurar item
@@ -191,15 +231,32 @@ void AlbumDetailWindow::loadSongs() {
 void AlbumDetailWindow::onItemClicked(QListWidgetItem* item) {
     m_indiceActual = item->data(Qt::UserRole).toInt();
     if (m_indiceActual >= 0 && m_indiceActual < m_cancionesAlbum.size()) {
-        emit solicitarReproduccionCancion(m_cancionesAlbum.at(m_indiceActual));
+        // Emitir señal para reproducir el álbum completo comenzando por esta canción
+        emit solicitarReproduccionAlbum(m_cancionesAlbum, m_indiceActual);
     }
 }
 
-void AlbumDetailWindow::reproducirSiguiente() {
+void AlbumDetailWindow::reproducirSiguiente()
+{
     if (m_cancionesAlbum.isEmpty()) return;
 
-    m_indiceActual = (m_indiceActual + 1) % m_cancionesAlbum.size();
-    m_songsList->setCurrentRow(m_indiceActual);
+    int nextIndex;
+
+    if (m_randomMode) {
+        // Modo aleatorio
+        if (m_cancionesAlbum.size() > 1) {
+            do {
+                nextIndex = QRandomGenerator::global()->bounded(m_cancionesAlbum.size());
+            } while (nextIndex == m_indiceActual);
+        } else {
+            nextIndex = 0; // Solo hay una canción
+        }
+    } else {
+        // Modo secuencial
+        nextIndex = (m_indiceActual + 1) % m_cancionesAlbum.size();
+    }
+
+    m_indiceActual = nextIndex;
     emit solicitarReproduccionCancion(m_cancionesAlbum.at(m_indiceActual));
 }
 
@@ -210,3 +267,8 @@ void AlbumDetailWindow::reproducirAnterior() {
     m_songsList->setCurrentRow(m_indiceActual);
     emit solicitarReproduccionCancion(m_cancionesAlbum.at(m_indiceActual));
 }
+
+void AlbumDetailWindow::onAgregarCancionClicked() {
+    emit agregarCancionAlAlbum(&m_album);
+}
+

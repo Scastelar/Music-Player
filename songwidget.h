@@ -10,10 +10,13 @@ class SongWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit SongWidget(const Cancion& cancion, QWidget *parent = nullptr);
+    explicit SongWidget(Cancion& cancion, QWidget *parent = nullptr);
+    Cancion getCancion(){
+        return m_cancion;
+    }
 
 signals:
-    void songClicked(const Cancion &cancion);
+    void songClicked(Cancion &cancion);
     void editSongRequested(int cancionId);
     void deleteSongRequested(int cancionId);
 

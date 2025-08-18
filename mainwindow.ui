@@ -30,7 +30,7 @@
      <string notr="true">background-color: rgb(255, 255, 255);</string>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QLabel" name="label">
@@ -117,6 +117,9 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="placeholderText">
+       <string>Ingrese su usuario</string>
+      </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_2">
       <property name="geometry">
@@ -126,6 +129,9 @@
         <width>261</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="placeholderText">
+       <string>Ingrese su nombre</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_3">
@@ -139,6 +145,9 @@
       </property>
       <property name="echoMode">
        <enum>QLineEdit::EchoMode::Password</enum>
+      </property>
+      <property name="placeholderText">
+       <string>Ingrese su contraseña</string>
       </property>
      </widget>
      <widget class="QPushButton" name="loadButton1">
@@ -223,18 +232,30 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="placeholderText">
+       <string>Correo@Ejemplo.com</string>
+      </property>
      </widget>
      <widget class="QToolButton" name="toolButton">
       <property name="geometry">
        <rect>
         <x>810</x>
         <y>270</y>
-        <width>31</width>
-        <height>31</height>
+        <width>21</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
        <string>ojo</string>
+      </property>
+      <property name="icon">
+       <iconset theme="QIcon::ThemeIcon::MediaOptical"/>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>
@@ -267,6 +288,9 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="placeholderText">
+       <string>Username del artista</string>
+      </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_6">
       <property name="geometry">
@@ -276,6 +300,9 @@
         <width>261</width>
         <height>31</height>
        </rect>
+      </property>
+      <property name="placeholderText">
+       <string>Nombre real del artista</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_7">
@@ -289,6 +316,9 @@
       </property>
       <property name="echoMode">
        <enum>QLineEdit::EchoMode::Password</enum>
+      </property>
+      <property name="placeholderText">
+       <string>Ingrese su contraseña</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox">
@@ -433,14 +463,32 @@
      <widget class="QToolButton" name="toolButton_2">
       <property name="geometry">
        <rect>
-        <x>860</x>
+        <x>850</x>
         <y>200</y>
-        <width>31</width>
-        <height>31</height>
+        <width>21</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="text">
-       <string>ojo</string>
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset theme="QIcon::ThemeIcon::MediaOptical"/>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+      <property name="autoRepeat">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
@@ -488,6 +536,9 @@
       </property>
       <property name="styleSheet">
        <string notr="true"/>
+      </property>
+      <property name="echoMode">
+       <enum>QLineEdit::EchoMode::Password</enum>
       </property>
      </widget>
      <widget class="QPushButton" name="loginButton_2">

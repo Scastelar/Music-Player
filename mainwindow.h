@@ -28,6 +28,8 @@ private:
     Cuentas* manejo;
     bool isCensurada;
 
+    QString Montserrat = "Montserrat";
+
     void initPopup();
     void resetearCampos();
 private slots:
