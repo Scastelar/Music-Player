@@ -506,7 +506,56 @@ bool Cuentas::editarUsuario(const QString& nombreUsuarioActual, const QString& n
 // -------------------------------
 // Métodos públicos de gestión de álbumes
 // -------------------------------
+// -------------------------------
+// Métodos para gestión de álbumes
+// -------------------------------
 
+bool Cuentas::eliminarAlbum(int albumId) {
+    if (!albumes.contains(albumId)) return false;
+
+    // Eliminar de los índices
+    Album* album = albumes[albumId];
+    albumesPorTitulo[album->getNombre()].removeAll(albumId);
+    albumesPorUsuario[album->getIdArtista()].removeAll(albumId);
+    albumesPorTipo[album->getTipoString()].removeAll(albumId);
+
+    // Eliminar el álbum
+    delete albumes.take(albumId);
+
+    // Reescribir el archivo completo
+    guardarAlbumesEnArchivo();
+
+    return true;
+}
+
+bool Cuentas::actualizarAlbum(int albumId, const QString& nuevoNombre,
+                              const QString& nuevaPortada, const QString& nuevoTipo) {
+    if (!albumes.contains(albumId)) return false;
+
+    Album* album = albumes[albumId];
+
+    // Actualizar índices si cambió el nombre
+    if (!nuevoNombre.isEmpty() && nuevoNombre != album->getNombre()) {
+        albumesPorTitulo[album->getNombre()].removeAll(albumId);
+        album->setNombre(nuevoNombre);
+        albumesPorTitulo[nuevoNombre].append(albumId);
+    }
+
+    // Actualizar portada si se proporciona
+    if (!nuevaPortada.isEmpty()) {
+        album->setPortada(nuevaPortada);
+    }
+
+    // Actualizar tipo si se proporciona
+    if (!nuevoTipo.isEmpty()) {
+        albumesPorTipo[album->getTipoString()].removeAll(albumId);
+        album->setTipoFromString(nuevoTipo);
+        albumesPorTipo[nuevoTipo].append(albumId);
+    }
+
+    guardarAlbumesEnArchivo();
+    return true;
+}
 bool Cuentas::crearAlbum(int userId, const QString& nombre, const QString& portada) {
     if (!usuarios.contains(userId)) return false;
 
@@ -709,6 +758,388 @@ QList<Playlist*> Cuentas::buscarPlaylistsPorNombre(const QString& nombre) {
         resultado.append(playlists.value(id));
     }
     return resultado;
+}
+// -------------------------------
+// Métodos para archivos de usuario
+// -------------------------------
+
+// Métodos para biblioteca (descargas)
+bool Cuentas::agregarCancionABiblioteca(int userId, int cancionId) {
+    if (!usuarios.contains(userId) || !canciones.contains(cancionId)) return false;
+
+    QString archivo = QString("%1%2/biblioteca_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return agregarIdAArchivo(archivo, cancionId);
+}
+
+bool Cuentas::eliminarCancionDeBiblioteca(int userId, int cancionId) {
+    QString archivo = QString("%1%2/biblioteca_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return eliminarIdDeArchivo(archivo, cancionId);
+}
+
+QList<int> Cuentas::obtenerBibliotecaUsuario(int userId) {
+    QString archivo = QString("%1%2/biblioteca_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return leerIdsDeArchivo(archivo);
+}
+
+// Métodos para playlists personales
+bool Cuentas::agregarPlaylistAUsuario(int userId, int playlistId) {
+    if (!usuarios.contains(userId) || !playlists.contains(playlistId)) return false;
+
+    QString archivo = QString("%1%2/listas_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return agregarIdAArchivo(archivo, playlistId);
+}
+
+bool Cuentas::eliminarPlaylistDeUsuario(int userId, int playlistId) {
+    QString archivo = QString("%1%2/listas_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return eliminarIdDeArchivo(archivo, playlistId);
+}
+
+QList<int> Cuentas::obtenerPlaylistsUsuario(int userId) {
+    QString archivo = QString("%1%2/listas_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return leerIdsDeArchivo(archivo);
+}
+
+// Métodos para favoritos
+bool Cuentas::agregarCancionAFavoritos(int userId, int cancionId) {
+    if (!usuarios.contains(userId) || !canciones.contains(cancionId)) return false;
+
+    QString archivo = QString("%1%2/favoritos_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return agregarIdAArchivo(archivo, cancionId);
+}
+
+bool Cuentas::eliminarCancionDeFavoritos(int userId, int cancionId) {
+    QString archivo = QString("%1%2/favoritos_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return eliminarIdDeArchivo(archivo, cancionId);
+}
+
+QList<int> Cuentas::obtenerFavoritosUsuario(int userId) {
+    QString archivo = QString("%1%2/favoritos_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    return leerIdsDeArchivo(archivo);
+}
+
+// Métodos auxiliares para manejo de archivos de IDs
+bool Cuentas::agregarIdAArchivo(const QString& archivo, int id) {
+    QFile file(archivo);
+    if (!file.open(QIODevice::Append)) return false;
+
+    QDataStream out(&file);
+    out << id;
+    return true;
+}
+
+bool Cuentas::eliminarIdDeArchivo(const QString& archivo, int id) {
+    QList<int> ids = leerIdsDeArchivo(archivo);
+    ids.removeAll(id);
+
+    QFile file(archivo);
+    if (!file.open(QIODevice::WriteOnly)) return false;
+
+    QDataStream out(&file);
+    for (int currentId : ids) {
+        out << currentId;
+    }
+    return true;
+}
+
+QList<int> Cuentas::leerIdsDeArchivo(const QString& archivo) {
+    QList<int> ids;
+    QFile file(archivo);
+
+    if (file.open(QIODevice::ReadOnly)) {
+        QDataStream in(&file);
+        while (!in.atEnd()) {
+            int id;
+            in >> id;
+            ids.append(id);
+        }
+    }
+
+    return ids;
+}
+
+// -------------------------------
+// Métodos para estadísticas y reproducciones
+// -------------------------------
+
+// Métodos para registrar reproducciones
+bool Cuentas::registrarReproduccion(int userId, int cancionId) {
+    if (!usuarios.contains(userId) || !canciones.contains(cancionId)) return false;
+
+    QString archivo = QString("%1%2/reproducciones_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    QFile file(archivo);
+    if (!file.open(QIODevice::Append)) return false;
+
+    QDataStream out(&file);
+    out << cancionId << QDateTime::currentDateTime();
+    return true;
+}
+
+// Métodos para registrar calificaciones
+bool Cuentas::registrarCalificacion(int userId, int cancionId, int calificacion) {
+    if (!usuarios.contains(userId) || !canciones.contains(cancionId) || calificacion < 1 || calificacion > 5) {
+        return false;
+    }
+
+    QString archivo = QString("%1%2/calificaciones_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    QFile file(archivo);
+    if (!file.open(QIODevice::Append)) return false;
+
+    QDataStream out(&file);
+    out << cancionId << calificacion << QDateTime::currentDateTime();
+    return true;
+}
+
+// Métodos para obtener estadísticas personales
+int Cuentas::totalCancionesEscuchadas(int userId) {
+    QString archivo = QString("%1%2/reproducciones_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    QSet<int> cancionesUnicas;
+
+    QFile file(archivo);
+    if (file.open(QIODevice::ReadOnly)) {
+        QDataStream in(&file);
+        while (!in.atEnd()) {
+            int cancionId;
+            QDateTime fecha;
+            in >> cancionId >> fecha;
+            cancionesUnicas.insert(cancionId);
+        }
+    }
+
+    return cancionesUnicas.size();
+}
+
+QList<QPair<int, int>> Cuentas::cancionesMasEscuchadas(int userId, int limite) {
+    QMap<int, int> contador;
+    QString archivo = QString("%1%2/reproducciones_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+
+    QFile file(archivo);
+    if (file.open(QIODevice::ReadOnly)) {
+        QDataStream in(&file);
+        while (!in.atEnd()) {
+            int cancionId;
+            QDateTime fecha;
+            in >> cancionId >> fecha;
+            contador[cancionId]++;
+        }
+    }
+
+    // Convertir a lista y ordenar
+    QList<QPair<int, int>> resultado;
+    for (auto it = contador.begin(); it != contador.end(); ++it) {
+        resultado.append(qMakePair(it.key(), it.value()));
+    }
+
+    // Ordenar descendente por cantidad de reproducciones
+    std::sort(resultado.begin(), resultado.end(),
+              [](const QPair<int, int>& a, const QPair<int, int>& b) {
+                  return a.second > b.second;
+              });
+
+    return resultado.mid(0, limite);
+}
+
+double Cuentas::promedioCalificacionesUsuario(int userId) {
+    QString archivo = QString("%1%2/calificaciones_%2.dat").arg(CARPETA_USUARIOS).arg(userId);
+    double suma = 0;
+    int cantidad = 0;
+
+    QFile file(archivo);
+    if (file.open(QIODevice::ReadOnly)) {
+        QDataStream in(&file);
+        while (!in.atEnd()) {
+            int cancionId, calificacion;
+            QDateTime fecha;
+            in >> cancionId >> calificacion >> fecha;
+            suma += calificacion;
+            cantidad++;
+        }
+    }
+
+    return cantidad > 0 ? suma / cantidad : 0.0;
+}
+
+// Métodos para estadísticas globales (solo administradores)
+QList<QPair<int, int>> Cuentas::cancionesMasEscuchadasGlobal(int limite) {
+    QMap<int, int> contador;
+
+    // Recorrer todos los usuarios
+    for (Usuario* usuario : usuarios) {
+        QString archivo = QString("%1%2/reproducciones_%2.dat").arg(CARPETA_USUARIOS).arg(usuario->getId());
+        QFile file(archivo);
+        if (file.open(QIODevice::ReadOnly)) {
+            QDataStream in(&file);
+            while (!in.atEnd()) {
+                int cancionId;
+                QDateTime fecha;
+                in >> cancionId >> fecha;
+                contador[cancionId]++;
+            }
+        }
+    }
+
+    // Convertir a lista y ordenar
+    QList<QPair<int, int>> resultado;
+    for (auto it = contador.begin(); it != contador.end(); ++it) {
+        resultado.append(qMakePair(it.key(), it.value()));
+    }
+
+    // Ordenar descendente por cantidad de reproducciones
+    std::sort(resultado.begin(), resultado.end(),
+              [](const QPair<int, int>& a, const QPair<int, int>& b) {
+                  return a.second > b.second;
+              });
+
+    return resultado.mid(0, limite);
+}
+
+QList<QPair<int, double>> Cuentas::cancionesMejorCalificadasGlobal(int limite) {
+    QMap<int, QPair<double, int>> acumulador; // cancionId -> (suma, cantidad)
+
+    // Recorrer todos los usuarios
+    for (Usuario* usuario : usuarios) {
+        QString archivo = QString("%1%2/calificaciones_%2.dat").arg(CARPETA_USUARIOS).arg(usuario->getId());
+        QFile file(archivo);
+        if (file.open(QIODevice::ReadOnly)) {
+            QDataStream in(&file);
+            while (!in.atEnd()) {
+                int cancionId, calificacion;
+                QDateTime fecha;
+                in >> cancionId >> calificacion >> fecha;
+
+                acumulador[cancionId].first += calificacion;
+                acumulador[cancionId].second++;
+            }
+        }
+    }
+
+    // Convertir a lista de promedios y ordenar
+    QList<QPair<int, double>> resultado;
+    for (auto it = acumulador.begin(); it != acumulador.end(); ++it) {
+        double promedio = it.value().second > 0 ? it.value().first / it.value().second : 0.0;
+        resultado.append(qMakePair(it.key(), promedio));
+    }
+
+    // Ordenar descendente por calificación promedio
+    std::sort(resultado.begin(), resultado.end(),
+              [](const QPair<int, double>& a, const QPair<int, double>& b) {
+                  return a.second > b.second;
+              });
+
+    return resultado.mid(0, limite);
+}
+
+QList<QPair<int, int>> Cuentas::usuariosMasActivos(int limite) {
+    QMap<int, int> contador; // userId -> cantidad de reproducciones
+
+    // Recorrer todos los usuarios
+    for (Usuario* usuario : usuarios) {
+        QString archivo = QString("%1%2/reproducciones_%2.dat").arg(CARPETA_USUARIOS).arg(usuario->getId());
+        QFile file(archivo);
+        if (file.open(QIODevice::ReadOnly)) {
+            QDataStream in(&file);
+            while (!in.atEnd()) {
+                int cancionId;
+                QDateTime fecha;
+                in >> cancionId >> fecha;
+                contador[usuario->getId()]++;
+            }
+        }
+    }
+
+    // Convertir a lista y ordenar
+    QList<QPair<int, int>> resultado;
+    for (auto it = contador.begin(); it != contador.end(); ++it) {
+        resultado.append(qMakePair(it.key(), it.value()));
+    }
+
+    // Ordenar descendente por cantidad de reproducciones
+    std::sort(resultado.begin(), resultado.end(),
+              [](const QPair<int, int>& a, const QPair<int, int>& b) {
+                  return a.second > b.second;
+              });
+
+    return resultado.mid(0, limite);
+}
+
+QMap<QString, double> Cuentas::promedioCalificacionesPorGenero() {
+    QMap<QString, QPair<double, int>> acumulador; // género -> (suma, cantidad)
+
+    // Recorrer todas las calificaciones de todos los usuarios
+    for (Usuario* usuario : usuarios) {
+        QString archivo = QString("%1%2/calificaciones_%2.dat").arg(CARPETA_USUARIOS).arg(usuario->getId());
+        QFile file(archivo);
+        if (file.open(QIODevice::ReadOnly)) {
+            QDataStream in(&file);
+            while (!in.atEnd()) {
+                int cancionId, calificacion;
+                QDateTime fecha;
+                in >> cancionId >> calificacion >> fecha;
+
+                if (canciones.contains(cancionId)) {
+                    QString genero = canciones[cancionId]->getGenero();
+                    acumulador[genero].first += calificacion;
+                    acumulador[genero].second++;
+                }
+            }
+        }
+    }
+
+    // Convertir a promedios
+    QMap<QString, double> resultado;
+    for (auto it = acumulador.begin(); it != acumulador.end(); ++it) {
+        resultado[it.key()] = it.value().second > 0 ? it.value().first / it.value().second : 0.0;
+    }
+
+    return resultado;
+}
+
+// -------------------------------
+// Métodos para obtener listas de canciones
+// -------------------------------
+
+QList<Cancion*> Cuentas::obtenerCancionesBiblioteca(int userId) {
+    QList<int> ids = obtenerBibliotecaUsuario(userId);
+    QList<Cancion*> resultado;
+
+    for (int id : ids) {
+        if (canciones.contains(id)) {
+            resultado.append(canciones[id]);
+        }
+    }
+
+    return resultado;
+}
+
+QList<Cancion*> Cuentas::obtenerCancionesFavoritas(int userId) {
+    QList<int> ids = obtenerFavoritosUsuario(userId);
+    QList<Cancion*> resultado;
+
+    for (int id : ids) {
+        if (canciones.contains(id)) {
+            resultado.append(canciones[id]);
+        }
+    }
+
+    return resultado;
+}
+
+QList<Cancion*> Cuentas::obtenerCancionesPlaylistsUsuario(int userId) {
+    QList<int> playlistIds = obtenerPlaylistsUsuario(userId);
+    QList<Cancion*> resultado;
+
+    for (int playlistId : playlistIds) {
+        if (playlists.contains(playlistId)) {
+            for (int cancionId : playlists[playlistId]->getCanciones()) {
+                if (canciones.contains(cancionId)) {
+                    resultado.append(canciones[cancionId]);
+                }
+            }
+        }
+    }
+
+    // Eliminar duplicados
+    QSet<Cancion*> unicos(resultado.begin(), resultado.end());
+    return QList<Cancion*>(unicos.begin(), unicos.end());
 }
 
 // -------------------------------
