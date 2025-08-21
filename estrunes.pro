@@ -14,14 +14,12 @@ SOURCES += \
     Estandar.cpp \
     Usuario.cpp \
     album.cpp \
-    albumdetailwindow.cpp \
     albumwidget.cpp \
     artistawindow.cpp \
-    biblioteca.cpp \
     cancion.cpp \
     cuentas.cpp \
-    halbumwidget.cpp \
-    homewindow.cpp \
+    listareproduccion.cpp \
+    listareproducciondetailwindow.cpp \
     main.cpp \
     mainwindow.cpp \
     playlist.cpp \
@@ -32,21 +30,18 @@ HEADERS += \
     Estandar.h \
     Usuario.h \
     album.h \
-    albumdetailwindow.h \
     albumwidget.h \
     artistawindow.h \
-    biblioteca.h \
     cancion.h \
     cuentas.h \
-    halbumwidget.h \
-    homewindow.h \
+    listareproduccion.h \
+    listareproducciondetailwindow.h \
     mainwindow.h \
     playlist.h \
     songwidget.h
 
 FORMS += \
     artistawindow.ui \
-    homewindow.ui \
     mainwindow.ui
 
 # Default rules for deployment.

@@ -2,7 +2,7 @@
 #include <QDataStream>
 
 
-Cancion::Cancion() : id(0), duracion(0), fechaRegistro(QDateTime::currentDateTime()) {}
+Cancion::Cancion() : id(0), duracion(""), fechaRegistro(QDateTime::currentDateTime()) {}
 
 Cancion::Cancion(int id, const QString& titulo, const QString& artista,
                  const QString& album, const QString& genero, const QString& categoria,
@@ -42,12 +42,12 @@ QList<Cancion> Cancion::cargarDesdeArchivo(const QString& nombreArchivo) {
 // Serialización
 void Cancion::escribirEnStream(QDataStream& stream) const {
     stream << id << titulo << artista << album << genero
-           << duracion << estado << rutaAudio << rutaPortada << fechaRegistro;
+           << categoria << rutaAudio << rutaPortada << rutaPortada << fechaRegistro << duracion;
 }
 
 void Cancion::leerDesdeStream(QDataStream& stream) {
     stream >> id >> titulo >> artista >> album >> genero
-        >> duracion >> estado >> rutaAudio >> rutaPortada >> fechaRegistro;
+        >> categoria >> rutaAudio >> rutaPortada >> rutaPortada >> fechaRegistro >> duracion;
 }
 
 QDataStream& operator<<(QDataStream& out, const Cancion& cancion) {
@@ -59,3 +59,7 @@ QDataStream& operator>>(QDataStream& in, Cancion& cancion) {
     cancion.leerDesdeStream(in);
     return in;
 }
+
+
+
+

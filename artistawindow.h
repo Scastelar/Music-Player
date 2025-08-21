@@ -29,7 +29,7 @@ public:
     void actualizarListaCanciones();
     void seleccionarPortada();
     void verificarYCrearAlbum();
-    void finalizarAlbum();
+    //void finalizarAlbum();
     void EditarPerfil();
     void VistaPerfil();
 
@@ -51,6 +51,8 @@ private:
 
     bool m_autoPlayPending = false;
 
+    int filtro = 1;
+
     QFileSystemWatcher *fileWatcher;
 
     void initComponents();
@@ -68,6 +70,8 @@ private:
     QAction* verEstadisticas;
     QAction* cerrarSesion;
     QAction* verPerfil;
+
+    void setupMediaPlayer();
 
     bool isMuted = false;
     bool isPaused = false;
@@ -91,20 +95,35 @@ private:
 
     AlbumTemp albumActual; // Para guardar temporalmente los datos del álbum
 
+    // Estructura para metadatos (añadir en el header)
+    struct CancionMetadata {
+        QString titulo;
+        QString album;
+        QString genero;
+        QString duracionString;
+        QDateTime fecha;
+        QString portada;
+    };
+
     QList<Cancion*> m_cancionesAlbumActual;
     int m_indiceAlbumActual = -1;
     Album* m_albumActual = nullptr;
 
 private slots:
 
+    //Metodos para sobrecargar
+
+    void loadSongs(const QString &genero);
+    void cargarAlbumesUsuario(const QString& tipo);
+
+    //Metodos base
+
     void on_toolButton_home_clicked();
 
     void on_lineEdit_editingFinished();
 
-    void loadSongs(const QString &genero);
-
-
     void playSong(Cancion& cancion);
+
 
     void durationChanged(qint64 duration);
 
@@ -119,8 +138,6 @@ private slots:
     void onCancionesFileChanged(const QString &path);
 
     void on_toolButton_limpiar_clicked();
-
-    void cargarAlbumesUsuario(const QString& tipo);
 
     void mostrarDetalleAlbum(Album* album);
 
@@ -140,8 +157,6 @@ private slots:
 
     void onDurationChanged(qint64 durationMs);
 
-    void on_toolButton_addSong_clicked();
-
     void on_toolButton_loop_clicked();
 
     void on_toolButton_random_clicked();
@@ -155,6 +170,10 @@ private slots:
     void on_horizontalSlider_Audio_File_Duration_sliderReleased();
     void on_horizontalSlider_Audio_File_Duration_valueChanged(int value);
     void on_desactivarButton_clicked();
+    void on_toolButton_addPlaylist_clicked();
+
+    CancionMetadata extractMetadata(const QString &filePath);
+    void procesarCancionesEnLote(const QList<Cancion> &canciones, Album* album);
 };
 
 #endif // ARTISTAWINDOW_H

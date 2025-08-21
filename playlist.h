@@ -1,51 +1,21 @@
 #ifndef PLAYLIST_H
 #define PLAYLIST_H
 
-#include <QString>
-#include <QList>
-#include <QDateTime>
-#include <QDataStream>
+#include "ListaReproduccion.h"
 
-class Playlist {
-public:
-    // Constructores
-    Playlist();
-    Playlist(int id, const QString& nombre, int idUsuario);
-
-    // Getters
-    int getId() const;
-    QString getNombre() const;
-    int getIdUsuario() const;
-    QDateTime getFechaCreacion() const;
-    QList<int> getCanciones() const;
-    int getCantidadCanciones() const;
-
-    // Setters
-    void setId(int id);
-    void setNombre(const QString& nombre);
-    void setIdUsuario(int id);
-
-    // Gestión de canciones
-    void agregarCancion(int idCancion);
-    void eliminarCancion(int idCancion);
-    bool contieneCancion(int idCancion) const;
-    void moverCancion(int posActual, int nuevaPos);
-    void limpiarPlaylist();
-
-    // Serialización
-    void escribirEnStream(QDataStream& stream) const;
-    void leerDesdeStream(QDataStream& stream);
-
-    friend QDataStream& operator<<(QDataStream& out, const Playlist& playlist);
-    friend QDataStream& operator>>(QDataStream& in, Playlist& playlist);
-
-private:
-    int id;
-    QString nombre;
+class Playlist : public ListaReproduccion {
     int idUsuario;
-    QList<int> canciones;
-    QDateTime fechaCreacion;
 
+public:
+    Playlist(int id = 0, const QString& nombre = "", int usuarioId = 0, const QString& portada = "")
+        : ListaReproduccion(id, nombre, portada), idUsuario(usuarioId) {}
+
+    int getIdUsuario() const { return idUsuario; }
+    void setIdUsuario(int id) { idUsuario = id; }
+
+    QString getTipoString() const override { return "PLAYLIST"; }
+
+    friend QDataStream& operator<<(QDataStream& out, const Playlist& pl);
+    friend QDataStream& operator>>(QDataStream& in, Playlist& pl);
 };
-
-#endif // PLAYLIST_H
+#endif

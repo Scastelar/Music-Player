@@ -14,7 +14,7 @@ private:
     QString album;
     QString genero;
     QString categoria;
-    int duracion;
+    QString duracion;
     QString rutaPortada;
     bool estado;
     QString rutaAudio;
@@ -37,7 +37,7 @@ public:
     QString getAlbum() const { return album; }
     QString getGenero() const { return genero; }
     QString getCategoria() const { return categoria; }
-    int getDuracion() const { return duracion; }
+    QString getDuracion() const { return duracion; }
     QString getRutaPortada() const { return rutaPortada; }
     bool getEstado() const { return estado; }
     QString getRutaAudio() const { return rutaAudio; }
@@ -46,10 +46,11 @@ public:
     // Setters
     void setId(const int& newID){ id = newID; }
     void setTitulo(const QString& newTitulo) { titulo = newTitulo; }
+    void setArtista(const QString& newArtista) { artista = newArtista;}
     void setGenero(const QString& newGenero) { genero = newGenero; }
     void setAlbum(const QString& album){ this->album = album; }
     void setCategoria(const QString& newCategoria) { categoria = newCategoria; }
-    void setDuracion(const int& newDuracion) { duracion = newDuracion; }
+    void setDuracion(const QString& newDuracion) { duracion = newDuracion; }
     void setRutaPortada(const QString& newRuta) { rutaPortada = newRuta; }
     void setEstado(bool newEstado) { estado = newEstado; }
     void setRutaAudio(const QString& newRuta) { rutaAudio = newRuta; }

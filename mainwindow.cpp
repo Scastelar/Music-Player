@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "homewindow.h"
 #include "artistawindow.h"
 #include "ui_mainwindow.h"
 
@@ -240,7 +239,7 @@ void MainWindow::on_crearButton1_clicked()
         Usuario* userActual = manejo->autenticar(nombre,password);
         resetearCampos();
         manejo->setIdUsuarioActual(userActual->getId());
-        HomeWindow* h = new HomeWindow(nullptr,*manejo);
+        ArtistaWindow* h = new ArtistaWindow(nullptr,*manejo);
         this->close();
         h->show();
     }
@@ -308,7 +307,7 @@ void MainWindow::on_loginButton_2_clicked()
                 this->close();
                 h->show();
             } else {
-                HomeWindow* h = new HomeWindow(nullptr,*manejo);
+                ArtistaWindow* h = new ArtistaWindow(nullptr,*manejo);
                 this->close();
                 h->show();
             }

@@ -109,7 +109,7 @@
                </widget>
               </item>
               <item alignment="Qt::AlignmentFlag::AlignRight">
-               <widget class="QToolButton" name="toolButton_Playlist">
+               <widget class="QToolButton" name="toolButton_addPlaylist">
                 <property name="toolTip">
                  <string>&quot;Crear un album&quot;</string>
                 </property>
@@ -265,7 +265,7 @@
               </size>
              </property>
              <property name="currentIndex">
-              <number>5</number>
+              <number>4</number>
              </property>
              <widget class="QWidget" name="page_7">
               <widget class="QScrollArea" name="scrollArea">
@@ -1565,9 +1565,15 @@ background-color: rgb(186, 186, 186);</string>
                 <rect>
                  <x>340</x>
                  <y>240</y>
-                 <width>271</width>
-                 <height>131</height>
+                 <width>270</width>
+                 <height>130</height>
                 </rect>
+               </property>
+               <property name="verticalScrollBarPolicy">
+                <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+               </property>
+               <property name="horizontalScrollBarPolicy">
+                <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
                </property>
                <property name="widgetResizable">
                 <bool>true</bool>
@@ -1577,14 +1583,36 @@ background-color: rgb(186, 186, 186);</string>
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>269</width>
-                  <height>129</height>
+                  <width>268</width>
+                  <height>128</height>
                  </rect>
                 </property>
                 <layout class="QHBoxLayout" name="horizontalLayout_31">
                  <item>
                   <widget class="QWidget" name="vistaAlbums" native="true">
-                   <layout class="QHBoxLayout" name="HAlbums"/>
+                   <property name="autoFillBackground">
+                    <bool>false</bool>
+                   </property>
+                   <layout class="QHBoxLayout" name="HAlbums">
+                    <property name="spacing">
+                     <number>0</number>
+                    </property>
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SizeConstraint::SetFixedSize</enum>
+                    </property>
+                    <property name="leftMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                   </layout>
                   </widget>
                  </item>
                 </layout>

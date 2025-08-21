@@ -11,24 +11,29 @@
 // Constructores y destructor
 // -------------------------------
 
-Cuentas::Cuentas() : idUsuarioActual(-1), ultimoIdUsuario(0), ultimoIdCancion(0), ultimoIdLista(0) {
-    QDir dir;
-    if (!dir.exists(CARPETA_USUARIOS)) {
-        dir.mkpath(CARPETA_USUARIOS);
-    }
+Cuentas::Cuentas()
+    : idUsuarioActual(-1),
+    ultimoIdUsuario(0),
+    ultimoIdCancion(0),
+    ultimoIdLista(0)
+{
     inicializarArchivos();
     cargarUsuariosDesdeArchivo();
     cargarCancionesDesdeArchivo();
-    cargarAlbumesDesdeArchivo();
-    cargarPlaylistsDesdeArchivo();
+    cargarListasDesdeArchivo<Album>(ARCHIVO_ALBUMES, albumes);
+    cargarListasDesdeArchivo<Playlist>(ARCHIVO_PLAYLISTS, playlists);
+
+    // Reconstruir índices secundarios
+    reconstruirIndices();
 }
 
 Cuentas::~Cuentas() {
     guardarUsuariosEnArchivo();
     guardarCancionesEnArchivo();
-    guardarAlbumesEnArchivo();
-    guardarPlaylistsEnArchivo();
+    guardarListasEnArchivo<Album>(ARCHIVO_ALBUMES, albumes);
+    guardarListasEnArchivo<Playlist>(ARCHIVO_PLAYLISTS, playlists);
 
+    // Liberar memoria
     qDeleteAll(usuarios);
     qDeleteAll(canciones);
     qDeleteAll(albumes);
@@ -36,24 +41,72 @@ Cuentas::~Cuentas() {
 }
 
 // -------------------------------
+// Método para reconstruir índices
+// -------------------------------
+
+void Cuentas::reconstruirIndices() {
+    // Limpiar índices existentes
+    cancionesPorTitulo.clear();
+    cancionesPorArtista.clear();
+    cancionesPorGenero.clear();
+    albumesPorTitulo.clear();
+    albumesPorUsuario.clear();
+    albumesPorTipo.clear();
+    playlistsPorTitulo.clear();
+    playlistsPorUsuario.clear();
+
+
+    // Reconstruir índices de canciones
+    for (auto it = canciones.begin(); it != canciones.end(); ++it) {
+        Cancion* cancion = it.value();
+        cancionesPorTitulo[cancion->getTitulo()].append(cancion->getId());
+        cancionesPorArtista[cancion->getArtista()].append(cancion->getId());
+        cancionesPorGenero[cancion->getGenero()].append(cancion->getId());
+    }
+
+    // Reconstruir índices de álbumes
+    for (auto it = albumes.begin(); it != albumes.end(); ++it) {
+        Album* album = it.value();
+        albumesPorTitulo[album->getNombre()].append(album->getId());
+        albumesPorUsuario[album->getIdArtista()].append(album->getId());
+        albumesPorTipo[album->getTipoString()].append(album->getId());
+    }
+
+    // Reconstruir índices de playlists
+    for (auto it = playlists.begin(); it != playlists.end(); ++it) {
+        Playlist* playlist = it.value();
+        playlistsPorTitulo[playlist->getNombre()].append(playlist->getId());
+        playlistsPorUsuario[playlist->getIdUsuario()].append(playlist->getId());
+    }
+
+    qDebug() << "Índices reconstruidos:";
+    qDebug() << "  Canciones:" << canciones.size();
+    qDebug() << "  Álbumes:" << albumes.size();
+    qDebug() << "  Playlists:" << playlists.size();
+}
+
+// -------------------------------
 // Métodos privados de inicialización
 // -------------------------------
 
 void Cuentas::inicializarArchivos() {
-    const QStringList archivos = {
-        ARCHIVO_USUARIOS,
-        ARCHIVO_ARTISTAS,
-        ARCHIVO_ALBUMES,
-        ARCHIVO_PLAYLISTS,
-        ARCHIVO_CANCIONES,
-        ARCHIVO_INDICES
+    QDir dir;
+    if (!dir.exists(CARPETA_USUARIOS)) {
+        dir.mkdir(CARPETA_USUARIOS);
+    }
+
+    QList<QString> archivos = {
+        ARCHIVO_USUARIOS, ARCHIVO_ARTISTAS, ARCHIVO_ALBUMES,
+        ARCHIVO_PLAYLISTS, ARCHIVO_CANCIONES, ARCHIVO_INDICES
     };
 
-    for (const QString& nombreArchivo : archivos) {
-        QFile archivo(nombreArchivo);
-        if (!archivo.exists() && archivo.open(QIODevice::WriteOnly)) {
-            archivo.close();
-            qDebug() << "Archivo creado:" << nombreArchivo;
+    for (const QString& archivo : archivos) {
+        if (!QFile::exists(archivo)) {
+            QFile f(archivo);
+            if (f.open(QIODevice::WriteOnly)) {
+                f.close();
+                qDebug() << "Archivo creado:" << archivo;
+            }
         }
     }
 }
@@ -83,162 +136,121 @@ void Cuentas::cargarUsuariosDesdeArchivo() {
     cargarArchivoUsuarios(ARCHIVO_ARTISTAS, true);
 }
 
+void Cuentas::guardarUsuariosEnArchivo() {
+    guardarArchivoUsuarios(ARCHIVO_USUARIOS, false);
+    guardarArchivoUsuarios(ARCHIVO_ARTISTAS, true);
+}
+
 void Cuentas::cargarArchivoUsuarios(const QString& archivo, bool esArtista) {
     QFile file(archivo);
     if (!file.open(QIODevice::ReadOnly)) return;
-
     QDataStream in(&file);
-    QMap<QString, IndiceUsuario> tempIndices;
+    in.setVersion(QDataStream::Qt_6_5);
 
     while (!in.atEnd()) {
-        qint64 posicion = in.device()->pos();
-
-        Usuario* usuario = esArtista ? static_cast<Usuario*>(new Administrador("","","","","",""))
-                                     : static_cast<Usuario*>(new Estandar("","","",""));
-        in >> *usuario;
-
-        // Validación de datos críticos
-        if (usuario->getId() <= 0 || usuario->getNombreUsuario().isEmpty()) {
-            delete usuario;
-            continue;
-        }
-
-        usuarios[usuario->getId()] = usuario;
-        usernameAId[usuario->getNombreUsuario()] = usuario->getId();
-        ultimoIdUsuario = qMax(ultimoIdUsuario, usuario->getId());
-
-        // Actualizar índices
-        indices[usuario->getNombreUsuario()] = {posicion, esArtista};
+        Usuario* u = esArtista ? (Usuario*)new Administrador("","","","","","") : (Usuario*)new Estandar("","","","");
+        in >> *u;
+        usuarios.insert(u->getId(), u);
+        usernameAId.insert(u->getNombreUsuario(), u->getId());
+        ultimoIdUsuario = std::max(ultimoIdUsuario, u->getId());
     }
-}
-
-void Cuentas::guardarUsuariosEnArchivo() {
-    // 1. Guardar último ID usado
-    QFile idFile("ultimoId.dat");
-    if (idFile.open(QIODevice::WriteOnly)) {
-        QDataStream out(&idFile);
-        out << ultimoIdUsuario;
-    }
-
-    // 2. Guardar usuarios en archivos separados
-    guardarArchivoUsuarios(ARCHIVO_USUARIOS, false);
-    guardarArchivoUsuarios(ARCHIVO_ARTISTAS, true);
-
-    // 3. Guardar índices
-    QFile indicesFile(ARCHIVO_INDICES);
-    if (indicesFile.open(QIODevice::WriteOnly)) {
-        QDataStream out(&indicesFile);
-        out << indices;
-    }
+    file.close();
 }
 
 void Cuentas::guardarArchivoUsuarios(const QString& archivo, bool esArtista) {
     QFile file(archivo);
     if (!file.open(QIODevice::WriteOnly)) return;
-
     QDataStream out(&file);
-    QMap<QString, IndiceUsuario> tempIndices;
+    out.setVersion(QDataStream::Qt_6_5);
 
-    for (Usuario* usuario : usuarios) {
-        if ((esArtista && usuario->getTipo() == "ADMIN") ||
-            (!esArtista && usuario->getTipo() != "ADMIN")) {
-
-            qint64 posicion = out.device()->pos();
-            out << *usuario;
-            tempIndices[usuario->getNombreUsuario()] = {posicion, esArtista};
+    for (Usuario* u : usuarios) {
+        bool admin = u->getTipo()=="ADMIN";
+        if (esArtista == admin) {
+            out << *u;
         }
     }
-
-    // Fusionar con índices existentes
-    for (auto it = tempIndices.begin(); it != tempIndices.end(); ++it) {
-        indices[it.key()] = it.value();
-    }
+    file.close();
 }
 
 void Cuentas::cargarCancionesDesdeArchivo() {
     QFile file(ARCHIVO_CANCIONES);
-    if (file.open(QIODevice::ReadOnly)) {
-        QDataStream in(&file);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Error al abrir canciones.dat para leer:" << file.errorString();
+        return;
+    }
 
-        while (!in.atEnd()) {
-            Cancion* cancion = new Cancion();
-            in >> *cancion;
-            canciones[cancion->getId()] = cancion;
-            ultimoIdCancion = qMax(ultimoIdCancion, cancion->getId());
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_6_5);
 
-            // Actualizar índices
-            cancionesPorTitulo[cancion->getTitulo()].append(cancion->getId());
-            cancionesPorArtista[cancion->getArtista()].append(cancion->getId());
+    canciones.clear(); // Limpiar antes de cargar
+    ultimoIdCancion = 0;
+
+    while (!in.atEnd()) {
+        Cancion* c = new Cancion();
+        in >> *c;
+
+        if (c->getId() > 0) { // Validar ID válido
+            canciones.insert(c->getId(), c);
+            ultimoIdCancion = qMax(ultimoIdCancion, c->getId());
+            qDebug() << "Canción cargada:" << c->getTitulo() << "ID:" << c->getId() << "Artista: " << c->getArtista()
+                     << "Genero: " << c->getGenero();
+        } else {
+            delete c; // Liberar memoria si es inválido
         }
     }
+
+    file.close();
+    qDebug() << "Total canciones cargadas:" << canciones.size();
 }
+
+
 
 void Cuentas::guardarCancionesEnArchivo() {
     QFile file(ARCHIVO_CANCIONES);
-    if (file.open(QIODevice::WriteOnly)) {
-        QDataStream out(&file);
-        for (Cancion* cancion : canciones) {
-            out << *cancion;
-        }
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "Error al abrir canciones.dat para escribir:" << file.errorString();
+        return;
     }
+
+    QDataStream out(&file);
+    out.setVersion(QDataStream::Qt_6_5);
+
+    for (Cancion* c : canciones) {
+        out << *c;
+    }
+
+    file.close();
+    qDebug() << "Canciones guardadas:" << canciones.size();
 }
 
-void Cuentas::cargarAlbumesDesdeArchivo() {
-    QFile file(ARCHIVO_ALBUMES);
-    if (file.open(QIODevice::ReadOnly)) {
-        QDataStream in(&file);
+template<typename T>
+void Cuentas::cargarListasDesdeArchivo(const QString& archivo, QHash<int, T*>& contenedor) {
+    QFile file(archivo);
+    if (!file.open(QIODevice::ReadOnly)) return;
+    QDataStream in(&file);
+    in.setVersion(QDataStream::Qt_6_5);
 
-        while (!in.atEnd()) {
-            Album* album = new Album();
-            in >> *album;
-            albumes[album->getId()] = album;
-            ultimoIdLista = qMax(ultimoIdLista, album->getId());
-
-            // Actualizar índices
-            albumesPorTitulo[album->getNombre()].append(album->getId());
-            albumesPorUsuario[album->getIdArtista()].append(album->getId());
-        }
+    while (!in.atEnd()) {
+        T* lista = new T();
+        in >> *lista;
+        contenedor.insert(lista->getId(), lista); 
+        ultimoIdLista = std::max(ultimoIdLista, lista->getId());
     }
+    file.close();
 }
 
-void Cuentas::guardarAlbumesEnArchivo() {
-    QFile file(ARCHIVO_ALBUMES);
-    if (file.open(QIODevice::WriteOnly)) {
-        QDataStream out(&file);
-        for (Album* album : albumes) {
-            out << *album;
-        }
+template<typename T>
+void Cuentas::guardarListasEnArchivo(const QString& archivo, const QHash<int, T*>& contenedor) {
+    QFile file(archivo);
+    if (!file.open(QIODevice::WriteOnly)) return;
+    QDataStream out(&file);
+    out.setVersion(QDataStream::Qt_6_5);
+
+    for (T* lista : contenedor) {
+        out << *lista;
     }
+    file.close();
 }
-
-void Cuentas::cargarPlaylistsDesdeArchivo() {
-    QFile file(ARCHIVO_PLAYLISTS);
-    if (file.open(QIODevice::ReadOnly)) {
-        QDataStream in(&file);
-
-        while (!in.atEnd()) {
-            Playlist* pl = new Playlist();
-            in >> *pl;
-            playlists[pl->getId()] = pl;
-            ultimoIdLista = qMax(ultimoIdLista, pl->getId());
-
-            // Actualizar índices
-            playlistsPorTitulo[pl->getNombre()].append(pl->getId());
-            playlistsPorUsuario[pl->getIdUsuario()].append(pl->getId());
-        }
-    }
-}
-
-void Cuentas::guardarPlaylistsEnArchivo() {
-    QFile file(ARCHIVO_PLAYLISTS);
-    if (file.open(QIODevice::WriteOnly)) {
-        QDataStream out(&file);
-        for (Playlist* pl : playlists) {
-            out << *pl;
-        }
-    }
-}
-
 
 
 // -------------------------------
@@ -503,175 +515,126 @@ bool Cuentas::editarUsuario(const QString& nombreUsuarioActual, const QString& n
     return true;
 }
 
-// -------------------------------
-// Métodos públicos de gestión de álbumes
-// -------------------------------
+
 // -------------------------------
 // Métodos para gestión de álbumes
 // -------------------------------
 
+bool Cuentas::agregarCancionALista(ListaReproduccion* lista, int cancionId) {
+    lista->agregarCancion(cancionId);
+
+    // Guardar según tipo dinámico
+    if (Album* a = dynamic_cast<Album*>(lista)) {
+        albumes.insert(cancionId,a);
+        //albumesPorTipo[a->getTipoString()].append(a->getId());
+    } else if (Playlist* p = dynamic_cast<Playlist*>(lista)) {
+        playlists.insert(cancionId,p);
+    }
+    guardarListasEnArchivo<Album>(ARCHIVO_ALBUMES, albumes);
+    return true;
+}
+
 bool Cuentas::eliminarAlbum(int albumId) {
     if (!albumes.contains(albumId)) return false;
-
-    // Eliminar de los índices
-    Album* album = albumes[albumId];
+    Album* album = albumes.take(albumId);
     albumesPorTitulo[album->getNombre()].removeAll(albumId);
     albumesPorUsuario[album->getIdArtista()].removeAll(albumId);
     albumesPorTipo[album->getTipoString()].removeAll(albumId);
+    delete album;
 
-    // Eliminar el álbum
-    delete albumes.take(albumId);
-
-    // Reescribir el archivo completo
-    guardarAlbumesEnArchivo();
-
+    guardarListasEnArchivo<Album>(ARCHIVO_ALBUMES, albumes);
     return true;
 }
 
-bool Cuentas::actualizarAlbum(int albumId, const QString& nuevoNombre,QString& nuevaPortada) {
-
+bool Cuentas::actualizarAlbum(int albumId, const QString& nuevoNombre, QString nuevaPortada) {
     if (!albumes.contains(albumId)) return false;
+    Album* album = albumes.value(albumId);
+    album->setNombre(nuevoNombre);
+    album->setPortada(nuevaPortada);
 
-    Album* album = albumes[albumId];
-
-    // Actualizar índices si cambió el nombre
-    if (!nuevoNombre.isEmpty() && nuevoNombre != album->getNombre()) {
-        albumesPorTitulo[album->getNombre()].removeAll(albumId);
-        album->setNombre(nuevoNombre);
-        albumesPorTitulo[nuevoNombre].append(albumId);
-    }
-
-    // Actualizar portada si se proporciona
-    if (!nuevaPortada.isEmpty()) {
-        album->setPortada(nuevaPortada);
-    }
-
-    guardarAlbumesEnArchivo();
+    guardarListasEnArchivo<Album>(ARCHIVO_ALBUMES, albumes);
     return true;
 }
-bool Cuentas::crearAlbum(int userId, const QString& nombre, const QString& portada) {
+// -------------------------------
+// Crear listas
+// =====================
+    bool Cuentas::crearAlbum(int userId, const QString& nombre, const QString& portada, Album::Tipo tipo) {
     if (!usuarios.contains(userId)) return false;
 
-    int nuevoId = ++ultimoIdLista;
-    Album* nuevoAlbum = new Album(nuevoId, nombre, userId, portada);
-    albumes[nuevoId] = nuevoAlbum;
-    albumesPorTitulo[nombre].append(nuevoId);
-    albumesPorUsuario[userId].append(nuevoId);
-    //albumesPorTipo[nuevoAlbum->getTipoString()].append(nuevoId);
+    int id = ++ultimoIdLista;
+    Album* album = new Album(id,nombre,userId,portada);
+    albumes.insert(id, album);
+    albumesPorTitulo[nombre].append(id);
+    albumesPorUsuario[userId].append(id);
 
-    // Guardar en archivo
-    QFile file(ARCHIVO_ALBUMES);
-    if (file.open(QIODevice::Append)) {
-        QDataStream out(&file);
-        out << *nuevoAlbum;
-        return true;
-    }
-
-    return false;
-}
-
-bool Cuentas::agregarCancionAlbum(int albumId, const Cancion& cancion) {
-    if (!albumes.contains(albumId)) {
-        qDebug() << "Álbum no encontrado:" << albumId;
-        return false;
-    }
-
-    int cancionId = cancion.getId();
-
-    // Si la canción no existe, crearla
-    if (!canciones.contains(cancionId)) {
-        Cancion* nuevaCancion = new Cancion(cancion);
-        nuevaCancion->setId(++ultimoIdCancion);
-        canciones[nuevaCancion->getId()] = nuevaCancion;
-        cancionId = nuevaCancion->getId();
-
-        // Actualizar índices
-        cancionesPorTitulo[nuevaCancion->getTitulo()].append(cancionId);
-        cancionesPorArtista[nuevaCancion->getArtista()].append(cancionId);
-        cancionesPorGenero[nuevaCancion->getGenero()].append(cancionId);
-
-        qDebug() << "Nueva canción creada con ID:" << cancionId;
-    }
-
-    albumes[albumId]->agregarCancion(cancionId);
-    albumesPorTipo[albumes[albumId]->getTipoString()].append(albumId);
-    guardarAlbumesEnArchivo();
-    guardarCancionesEnArchivo();
+    guardarListasEnArchivo<Album>(ARCHIVO_ALBUMES, albumes);
     return true;
 }
 
-// -------------------------------
-// Métodos públicos de gestión de playlists
-// -------------------------------
-
-bool Cuentas::crearPlaylist(int userId, const QString& nombre) {
+bool Cuentas::crearPlaylist(int userId, const QString& nombre, const QString& portada) {
     if (!usuarios.contains(userId)) return false;
 
-    int nuevoId = ++ultimoIdLista;
-    Playlist* nuevaPlaylist = new Playlist(nuevoId, nombre, userId);
-    playlists[nuevoId] = nuevaPlaylist;
-    playlistsPorUsuario[userId].append(nuevoId);
-    playlistsPorTitulo[nombre].append(nuevoId);
+    int id = ++ultimoIdLista;
+    Playlist* pl = new Playlist(id,nombre,userId,portada);
+    playlists.insert(id, pl);
+    playlistsPorTitulo[nombre].append(id);
+    playlistsPorUsuario[userId].append(id);
 
-    // Guardar en archivo
-    QFile file(ARCHIVO_PLAYLISTS);
-    if (file.open(QIODevice::Append)) {
-        QDataStream out(&file);
-        out << *nuevaPlaylist;
-        return true;
-    }
-
-    return false;
-}
-
-bool Cuentas::agregarCancionPlaylist(int playlistId, int cancionId) {
-    if (!playlists.contains(playlistId) || !canciones.contains(cancionId)) return false;
-
-    playlists[playlistId]->agregarCancion(cancionId);
-    guardarPlaylistsEnArchivo();
+    guardarListasEnArchivo<Playlist>(ARCHIVO_PLAYLISTS, playlists);
     return true;
 }
+
 
 // -------------------------------
 // Métodos públicos de gestión de canciones
 // -------------------------------
 
-bool Cuentas::eliminarCancion(int cancionId) {
-    if (!canciones.contains(cancionId)) return false;
+bool Cuentas::crearCancion(int userId, const QString& titulo, const QString& categoria,
+                           const QString& username,const QString& genero, const QDateTime& fecha,
+                           const QString& duracion,const QString& rutaAudio)
+{
+    if (!usuarios.contains(userId)) return false;
 
-    // Eliminar de todos los álbumes y playlists
-    for (Album* album : albumes) {
-        album->eliminarCancion(cancionId);
-    }
-    for (Playlist* playlist : playlists) {
-        playlist->eliminarCancion(cancionId);
-    }
+    int id = ++ultimoIdCancion;
 
-    // Eliminar de los índices
-    Cancion* cancion = canciones[cancionId];
-    cancionesPorTitulo[cancion->getTitulo()].removeAll(cancionId);
-    cancionesPorArtista[cancion->getArtista()].removeAll(cancionId);
-    cancionesPorGenero[cancion->getGenero()].removeAll(cancionId);
+    Cancion* nueva = new Cancion();
+    nueva->setId(id);
+    nueva->setTitulo(titulo);
+    nueva->setGenero(genero);
+    nueva->setRutaAudio(rutaAudio);
+    nueva->setArtista(username);
+    nueva->setCategoria(categoria);
+    nueva->setfechaRegistro(fecha);
+    nueva->setDuracion(duracion);
 
-    delete canciones.take(cancionId);
+    canciones.insert(id, nueva);
+
+    // índices secundarios
+    cancionesPorTitulo[titulo].append(id);
+    cancionesPorArtista[username].append(id);
+    cancionesPorGenero[genero].append(id);
+
     guardarCancionesEnArchivo();
-    guardarAlbumesEnArchivo();
-    guardarPlaylistsEnArchivo();
-
     return true;
 }
 
-bool Cuentas::actualizarCancion(int id, const QString &nuevoTitulo,
-                                const QString &nuevoGenero,
-                                const QString &nuevaRutaAudio) {
+bool Cuentas::eliminarCancion(int cancionId) {
+    if (!canciones.contains(cancionId)) return false;
+    Cancion* c = canciones.take(cancionId);
+    delete c;
+    guardarCancionesEnArchivo();
+    return true;
+}
+
+bool Cuentas::actualizarCancion(int id, const QString& nuevoTitulo,
+                                const QString& nuevoGenero,
+                                const QString& nuevaRutaAudio) {
     if (!canciones.contains(id)) return false;
-
-    Cancion* cancion = canciones[id];
-    cancion->setTitulo(nuevoTitulo);
-    cancion->setGenero(nuevoGenero);
-    cancion->setRutaAudio(nuevaRutaAudio);
-
-    guardarCancionesEnArchivo(); // sigue siendo privado pero se llama desde dentro de la clase
+    Cancion* c = canciones.value(id);
+    c->setTitulo(nuevoTitulo);
+    c->setGenero(nuevoGenero);
+    c->setRutaAudio(nuevaRutaAudio);
+    guardarCancionesEnArchivo();
     return true;
 }
 
@@ -720,6 +683,10 @@ QList<Cancion*> Cuentas::buscarCancionesPorGenero(const QString& genero){
         resultado.append(canciones.value(id));
     }
     return resultado;
+}
+
+Album* Cuentas::buscarAlbumPorId(int id)const {
+    return albumes.value(id, nullptr);
 }
 
 QList<Album*> Cuentas::buscarAlbumesPorNombre(const QString& nombre) {

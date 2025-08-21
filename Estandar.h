@@ -16,15 +16,6 @@ struct EntradaBiblioteca {
     QDateTime fechaAgregado;
 };
 
-// Estructura para listas de reproducción
-struct ListaReproduccion {
-    int idLista;
-    QString nombre;
-    QDateTime fechaCreacion;
-    bool activa;
-    QList<int> canciones;
-};
-
 class Estandar : public Usuario {
 private:
     QString email;
