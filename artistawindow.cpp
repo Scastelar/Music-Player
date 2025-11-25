@@ -430,7 +430,10 @@ void ArtistaWindow::editarCancion(int cancionId) {
 
 
 void ArtistaWindow::eliminarCancion(int cancionId){
-    manejo->eliminarCancion(cancionId);
+    if (manejo->eliminarCancion(cancionId)) {
+        // Refresh the song list to reflect the deletion
+        loadSongs("");
+    }
 }
 
 void ArtistaWindow::clearGrid()

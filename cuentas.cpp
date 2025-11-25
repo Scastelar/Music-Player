@@ -635,6 +635,16 @@ bool Cuentas::crearCancion(int userId, const QString& titulo, const QString& cat
 bool Cuentas::eliminarCancion(int cancionId) {
     if (!canciones.contains(cancionId)) return false;
     Cancion* c = canciones.take(cancionId);
+    
+    // Remove from indices to prevent dangling references
+    QString tituloLower = c->getTitulo().toLower();
+    QString artistaLower = c->getArtista().toLower();
+    QString generoLower = c->getGenero().toLower();
+    
+    cancionesPorTitulo[tituloLower].removeAll(cancionId);
+    cancionesPorArtista[artistaLower].removeAll(cancionId);
+    cancionesPorGenero[generoLower].removeAll(cancionId);
+    
     delete c;
     guardarCancionesEnArchivo();
     return true;
