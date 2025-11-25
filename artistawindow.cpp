@@ -27,7 +27,8 @@ ArtistaWindow::ArtistaWindow(QWidget *parent,Cuentas& manejo)
     ui->setupUi(this);
 
     usuario = manejo.getIdUsuarioActual();
-
+    // Initialize admin pointer by casting usuario to Administrador
+    admin = dynamic_cast<Administrador*>(usuario);
 
     rutaImagen = usuario->getRutaImagen();
 
@@ -429,7 +430,10 @@ void ArtistaWindow::editarCancion(int cancionId) {
 
 
 void ArtistaWindow::eliminarCancion(int cancionId){
-    manejo->eliminarCancion(cancionId);
+    if (manejo->eliminarCancion(cancionId)) {
+        // Refresh the song list to reflect the deletion
+        loadSongs("");
+    }
 }
 
 void ArtistaWindow::clearGrid()
@@ -585,6 +589,10 @@ void ArtistaWindow::mostrarDetalleAlbum(Album* album) {
 
 //Editar Perfil
 void ArtistaWindow::EditarPerfil(){
+    if (!admin) {
+        qWarning() << "EditarPerfil: admin pointer is null";
+        return;
+    }
 
     QPixmap avatar(admin->getRutaImagen());
     QPixmap avatarEscalado = avatar.scaled(
@@ -608,6 +616,11 @@ void ArtistaWindow::EditarPerfil(){
 
 //Vista previa del perfil
 void ArtistaWindow::VistaPerfil(){
+    if (!admin) {
+        qWarning() << "VistaPerfil: admin pointer is null";
+        return;
+    }
+
     QPixmap avatar(admin->getRutaImagen());
     QPixmap avatarEscalado = avatar.scaled(
         ui->PFPLabel->size(),
@@ -660,7 +673,6 @@ void ArtistaWindow::on_lineEdit_editingFinished()
 
     ui->stackedWidget->setCurrentIndex(4);
     QString texto = ui->lineEdit->text();
-    QString textoMin = texto.toLower();
 
     QList<Cancion*> canciones;
     QList<Usuario*> usuarios;
@@ -670,10 +682,22 @@ void ArtistaWindow::on_lineEdit_editingFinished()
     int columnCount = qMax(1, ui->gridBusqueda->width() / 200);
     switch(filtro){
     case 1:
-        canciones = manejo->buscarCancionesPorArtista(texto);
-        canciones += manejo->buscarCancionesPorArtista(textoMin);
-        canciones += manejo->buscarCancionesPorTitulo(texto);
-        canciones += manejo->buscarCancionesPorTitulo(textoMin);
+        // Search is now case-insensitive internally, no need to search twice
+        // Use QSet to avoid duplicates when searching by both artist and title
+        {
+            QSet<int> seenIds;
+            // Helper lambda to add unique songs to the list
+            auto addUniqueSongs = [&seenIds, &canciones](const QList<Cancion*>& results) {
+                for (Cancion* c : results) {
+                    if (!seenIds.contains(c->getId())) {
+                        seenIds.insert(c->getId());
+                        canciones.append(c);
+                    }
+                }
+            };
+            addUniqueSongs(manejo->buscarCancionesPorArtista(texto));
+            addUniqueSongs(manejo->buscarCancionesPorTitulo(texto));
+        }
         for (int i = 0; i < canciones.size(); ++i) {
             SongWidget *songWidget = new SongWidget(*canciones[i]);
             connect(songWidget, &SongWidget::songClicked, this, &ArtistaWindow::playSong);
@@ -686,10 +710,8 @@ void ArtistaWindow::on_lineEdit_editingFinished()
         }
     break;
     case 2:
-        //albumes = manejo->buscarAlbumesPorArtista(manejo->buscarUsuarioPorUsername(texto)->getId());
-        albumes += manejo->buscarAlbumesPorNombre(texto);
-        //albumes += manejo->buscarAlbumesPorArtista(manejo->buscarUsuarioPorUsername(textoMin)->getId());
-        albumes += manejo->buscarAlbumesPorNombre(textoMin);
+        // Search is now case-insensitive internally, no need to search twice
+        albumes = manejo->buscarAlbumesPorNombre(texto);
         for (int i = 0; i < albumes.size(); i++) {
             AlbumWidget* albumWidget = new AlbumWidget(*albumes[i], manejo);
             QListWidgetItem* item = new QListWidgetItem();
