@@ -23,7 +23,7 @@ public:
     // Getters
     int getId() const { return id; }
     QString getNombre() const { return nombre; }
-    QList<int> getCanciones() const { return canciones; }
+    const QList<int>& getCanciones() const { return canciones; }
     QString getPortada() const { return portada; }
     QDateTime getFechaCreacion() const { return fechaCreacion; }
 

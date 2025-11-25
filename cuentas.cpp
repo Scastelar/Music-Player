@@ -59,23 +59,26 @@ void Cuentas::reconstruirIndices() {
     // Reconstruir índices de canciones
     for (auto it = canciones.begin(); it != canciones.end(); ++it) {
         Cancion* cancion = it.value();
-        cancionesPorTitulo[cancion->getTitulo()].append(cancion->getId());
-        cancionesPorArtista[cancion->getArtista()].append(cancion->getId());
-        cancionesPorGenero[cancion->getGenero()].append(cancion->getId());
+        // Use lowercase keys for case-insensitive matching
+        cancionesPorTitulo[cancion->getTitulo().toLower()].append(cancion->getId());
+        cancionesPorArtista[cancion->getArtista().toLower()].append(cancion->getId());
+        cancionesPorGenero[cancion->getGenero().toLower()].append(cancion->getId());
     }
 
     // Reconstruir índices de álbumes
     for (auto it = albumes.begin(); it != albumes.end(); ++it) {
         Album* album = it.value();
-        albumesPorTitulo[album->getNombre()].append(album->getId());
+        // Use lowercase keys for case-insensitive matching
+        albumesPorTitulo[album->getNombre().toLower()].append(album->getId());
         albumesPorUsuario[album->getIdArtista()].append(album->getId());
-        albumesPorTipo[album->getTipoString()].append(album->getId());
+        albumesPorTipo[album->getTipoString().toLower()].append(album->getId());
     }
 
     // Reconstruir índices de playlists
     for (auto it = playlists.begin(); it != playlists.end(); ++it) {
         Playlist* playlist = it.value();
-        playlistsPorTitulo[playlist->getNombre()].append(playlist->getId());
+        // Use lowercase keys for case-insensitive matching
+        playlistsPorTitulo[playlist->getNombre().toLower()].append(playlist->getId());
         playlistsPorUsuario[playlist->getIdUsuario()].append(playlist->getId());
     }
 
@@ -564,7 +567,8 @@ bool Cuentas::actualizarAlbum(int albumId, const QString& nuevoNombre, QString n
     int id = ++ultimoIdLista;
     Album* album = new Album(id,nombre,userId,portada);
     albumes.insert(id, album);
-    albumesPorTitulo[nombre].append(id);
+    // Use lowercase for case-insensitive matching
+    albumesPorTitulo[nombre.toLower()].append(id);
     albumesPorUsuario[userId].append(id);
 
     guardarListasEnArchivo<Album>(ARCHIVO_ALBUMES, albumes);
@@ -577,7 +581,8 @@ bool Cuentas::crearPlaylist(int userId, const QString& nombre, const QString& po
     int id = ++ultimoIdLista;
     Playlist* pl = new Playlist(id,nombre,userId,portada);
     playlists.insert(id, pl);
-    playlistsPorTitulo[nombre].append(id);
+    // Use lowercase for case-insensitive matching
+    playlistsPorTitulo[nombre.toLower()].append(id);
     playlistsPorUsuario[userId].append(id);
 
     guardarListasEnArchivo<Playlist>(ARCHIVO_PLAYLISTS, playlists);
@@ -609,10 +614,10 @@ bool Cuentas::crearCancion(int userId, const QString& titulo, const QString& cat
 
     canciones.insert(id, nueva);
 
-    // índices secundarios
-    cancionesPorTitulo[titulo].append(id);
-    cancionesPorArtista[username].append(id);
-    cancionesPorGenero[genero].append(id);
+    // índices secundarios - use lowercase for case-insensitive matching
+    cancionesPorTitulo[titulo.toLower()].append(id);
+    cancionesPorArtista[username.toLower()].append(id);
+    cancionesPorGenero[genero.toLower()].append(id);
 
     guardarCancionesEnArchivo();
     return true;
@@ -663,7 +668,8 @@ Cancion* Cuentas::buscarCancionPorId(int id) {
 
 QList<Cancion*> Cuentas::buscarCancionesPorTitulo(const QString& titulo) {
     QList<Cancion*> resultado;
-    for (int id : cancionesPorTitulo.value(titulo)) {
+    // Use lowercase for case-insensitive search
+    for (int id : cancionesPorTitulo.value(titulo.toLower())) {
         resultado.append(canciones.value(id));
     }
     return resultado;
@@ -671,7 +677,8 @@ QList<Cancion*> Cuentas::buscarCancionesPorTitulo(const QString& titulo) {
 
 QList<Cancion*> Cuentas::buscarCancionesPorArtista(const QString& artista) {
     QList<Cancion*> resultado;
-    for (int id : cancionesPorArtista.value(artista)) {
+    // Use lowercase for case-insensitive search
+    for (int id : cancionesPorArtista.value(artista.toLower())) {
         resultado.append(canciones.value(id));
     }
     return resultado;
@@ -679,7 +686,8 @@ QList<Cancion*> Cuentas::buscarCancionesPorArtista(const QString& artista) {
 
 QList<Cancion*> Cuentas::buscarCancionesPorGenero(const QString& genero){
     QList<Cancion*> resultado;
-    for (int id : cancionesPorGenero.value(genero)) {
+    // Use lowercase for case-insensitive search
+    for (int id : cancionesPorGenero.value(genero.toLower())) {
         resultado.append(canciones.value(id));
     }
     return resultado;
@@ -691,15 +699,16 @@ Album* Cuentas::buscarAlbumPorId(int id)const {
 
 QList<Album*> Cuentas::buscarAlbumesPorNombre(const QString& nombre) {
     QList<Album*> resultado;
-    for (int id : albumesPorTitulo.value(nombre)) {
+    // Use lowercase for case-insensitive search
+    for (int id : albumesPorTitulo.value(nombre.toLower())) {
         resultado.append(albumes.value(id));
     }
     return resultado;
 }
 
-QList<Album*> Cuentas::buscarAlbumesPorArtista(const int& artistaID) {
+QList<Album*> Cuentas::buscarAlbumesPorArtista(int artistaId) {
     QList<Album*> resultado;
-    for (int id : albumesPorUsuario.value(artistaID)) {
+    for (int id : albumesPorUsuario.value(artistaId)) {
         resultado.append(albumes.value(id));
     }
     return resultado;
@@ -707,7 +716,8 @@ QList<Album*> Cuentas::buscarAlbumesPorArtista(const int& artistaID) {
 
 QList<Album*> Cuentas::buscarAlbumesPorTipo(const QString& tipo) {
     QList<Album*> resultado;
-    for (int id : albumesPorTipo.value(tipo)) {
+    // Use lowercase for case-insensitive search
+    for (int id : albumesPorTipo.value(tipo.toLower())) {
         resultado.append(albumes.value(id));
     }
     return resultado;
@@ -715,7 +725,8 @@ QList<Album*> Cuentas::buscarAlbumesPorTipo(const QString& tipo) {
 
 QList<Playlist*> Cuentas::buscarPlaylistsPorNombre(const QString& nombre) {
     QList<Playlist*> resultado;
-    for (int id : playlistsPorTitulo.value(nombre)) {
+    // Use lowercase for case-insensitive search
+    for (int id : playlistsPorTitulo.value(nombre.toLower())) {
         resultado.append(playlists.value(id));
     }
     return resultado;

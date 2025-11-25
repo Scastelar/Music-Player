@@ -660,7 +660,6 @@ void ArtistaWindow::on_lineEdit_editingFinished()
 
     ui->stackedWidget->setCurrentIndex(4);
     QString texto = ui->lineEdit->text();
-    QString textoMin = texto.toLower();
 
     QList<Cancion*> canciones;
     QList<Usuario*> usuarios;
@@ -670,10 +669,23 @@ void ArtistaWindow::on_lineEdit_editingFinished()
     int columnCount = qMax(1, ui->gridBusqueda->width() / 200);
     switch(filtro){
     case 1:
-        canciones = manejo->buscarCancionesPorArtista(texto);
-        canciones += manejo->buscarCancionesPorArtista(textoMin);
-        canciones += manejo->buscarCancionesPorTitulo(texto);
-        canciones += manejo->buscarCancionesPorTitulo(textoMin);
+        // Search is now case-insensitive internally, no need to search twice
+        // Use QSet to avoid duplicates when searching by both artist and title
+        {
+            QSet<int> seenIds;
+            for (Cancion* c : manejo->buscarCancionesPorArtista(texto)) {
+                if (!seenIds.contains(c->getId())) {
+                    seenIds.insert(c->getId());
+                    canciones.append(c);
+                }
+            }
+            for (Cancion* c : manejo->buscarCancionesPorTitulo(texto)) {
+                if (!seenIds.contains(c->getId())) {
+                    seenIds.insert(c->getId());
+                    canciones.append(c);
+                }
+            }
+        }
         for (int i = 0; i < canciones.size(); ++i) {
             SongWidget *songWidget = new SongWidget(*canciones[i]);
             connect(songWidget, &SongWidget::songClicked, this, &ArtistaWindow::playSong);
@@ -686,10 +698,8 @@ void ArtistaWindow::on_lineEdit_editingFinished()
         }
     break;
     case 2:
-        //albumes = manejo->buscarAlbumesPorArtista(manejo->buscarUsuarioPorUsername(texto)->getId());
-        albumes += manejo->buscarAlbumesPorNombre(texto);
-        //albumes += manejo->buscarAlbumesPorArtista(manejo->buscarUsuarioPorUsername(textoMin)->getId());
-        albumes += manejo->buscarAlbumesPorNombre(textoMin);
+        // Search is now case-insensitive internally, no need to search twice
+        albumes = manejo->buscarAlbumesPorNombre(texto);
         for (int i = 0; i < albumes.size(); i++) {
             AlbumWidget* albumWidget = new AlbumWidget(*albumes[i], manejo);
             QListWidgetItem* item = new QListWidgetItem();

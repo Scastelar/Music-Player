@@ -186,7 +186,7 @@ public:
     Album* buscarAlbumPorId(int id) const;
     QList<Album*> buscarAlbumesPorNombre(const QString& nombre);
     QList<Album*> buscarAlbumesPorTipo(const QString& tipo);
-    QList<Album*> buscarAlbumesPorArtista(const int& artista);
+    QList<Album*> buscarAlbumesPorArtista(int artistaId);
 
     QList<Playlist*> buscarPlaylistsPorNombre(const QString& nombre);
 
