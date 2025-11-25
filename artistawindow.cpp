@@ -27,7 +27,8 @@ ArtistaWindow::ArtistaWindow(QWidget *parent,Cuentas& manejo)
     ui->setupUi(this);
 
     usuario = manejo.getIdUsuarioActual();
-
+    // Initialize admin pointer by casting usuario to Administrador
+    admin = dynamic_cast<Administrador*>(usuario);
 
     rutaImagen = usuario->getRutaImagen();
 
@@ -585,6 +586,10 @@ void ArtistaWindow::mostrarDetalleAlbum(Album* album) {
 
 //Editar Perfil
 void ArtistaWindow::EditarPerfil(){
+    if (!admin) {
+        qWarning() << "EditarPerfil: admin pointer is null";
+        return;
+    }
 
     QPixmap avatar(admin->getRutaImagen());
     QPixmap avatarEscalado = avatar.scaled(
@@ -608,6 +613,11 @@ void ArtistaWindow::EditarPerfil(){
 
 //Vista previa del perfil
 void ArtistaWindow::VistaPerfil(){
+    if (!admin) {
+        qWarning() << "VistaPerfil: admin pointer is null";
+        return;
+    }
+
     QPixmap avatar(admin->getRutaImagen());
     QPixmap avatarEscalado = avatar.scaled(
         ui->PFPLabel->size(),
