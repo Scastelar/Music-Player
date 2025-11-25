@@ -80,3 +80,6 @@ CMakeLists.txt.user*
 .rcc/
 .uic/
 /build*/
+
+# CodeQL temporary files
+_codeql_detected_source_root
