@@ -59,27 +59,36 @@ void Cuentas::reconstruirIndices() {
     // Reconstruir índices de canciones
     for (auto it = canciones.begin(); it != canciones.end(); ++it) {
         Cancion* cancion = it.value();
-        // Use lowercase keys for case-insensitive matching
-        cancionesPorTitulo[cancion->getTitulo().toLower()].append(cancion->getId());
-        cancionesPorArtista[cancion->getArtista().toLower()].append(cancion->getId());
-        cancionesPorGenero[cancion->getGenero().toLower()].append(cancion->getId());
+        int id = cancion->getId();
+        // Cache lowercase values to avoid multiple string allocations
+        QString tituloLower = cancion->getTitulo().toLower();
+        QString artistaLower = cancion->getArtista().toLower();
+        QString generoLower = cancion->getGenero().toLower();
+        cancionesPorTitulo[tituloLower].append(id);
+        cancionesPorArtista[artistaLower].append(id);
+        cancionesPorGenero[generoLower].append(id);
     }
 
     // Reconstruir índices de álbumes
     for (auto it = albumes.begin(); it != albumes.end(); ++it) {
         Album* album = it.value();
-        // Use lowercase keys for case-insensitive matching
-        albumesPorTitulo[album->getNombre().toLower()].append(album->getId());
-        albumesPorUsuario[album->getIdArtista()].append(album->getId());
-        albumesPorTipo[album->getTipoString().toLower()].append(album->getId());
+        int id = album->getId();
+        // Cache lowercase values to avoid multiple string allocations
+        QString nombreLower = album->getNombre().toLower();
+        QString tipoLower = album->getTipoString().toLower();
+        albumesPorTitulo[nombreLower].append(id);
+        albumesPorUsuario[album->getIdArtista()].append(id);
+        albumesPorTipo[tipoLower].append(id);
     }
 
     // Reconstruir índices de playlists
     for (auto it = playlists.begin(); it != playlists.end(); ++it) {
         Playlist* playlist = it.value();
-        // Use lowercase keys for case-insensitive matching
-        playlistsPorTitulo[playlist->getNombre().toLower()].append(playlist->getId());
-        playlistsPorUsuario[playlist->getIdUsuario()].append(playlist->getId());
+        int id = playlist->getId();
+        // Cache lowercase value to avoid multiple string allocations
+        QString nombreLower = playlist->getNombre().toLower();
+        playlistsPorTitulo[nombreLower].append(id);
+        playlistsPorUsuario[playlist->getIdUsuario()].append(id);
     }
 
     qDebug() << "Índices reconstruidos:";

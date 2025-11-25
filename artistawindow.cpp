@@ -673,18 +673,17 @@ void ArtistaWindow::on_lineEdit_editingFinished()
         // Use QSet to avoid duplicates when searching by both artist and title
         {
             QSet<int> seenIds;
-            for (Cancion* c : manejo->buscarCancionesPorArtista(texto)) {
-                if (!seenIds.contains(c->getId())) {
-                    seenIds.insert(c->getId());
-                    canciones.append(c);
+            // Helper lambda to add unique songs to the list
+            auto addUniqueSongs = [&seenIds, &canciones](const QList<Cancion*>& results) {
+                for (Cancion* c : results) {
+                    if (!seenIds.contains(c->getId())) {
+                        seenIds.insert(c->getId());
+                        canciones.append(c);
+                    }
                 }
-            }
-            for (Cancion* c : manejo->buscarCancionesPorTitulo(texto)) {
-                if (!seenIds.contains(c->getId())) {
-                    seenIds.insert(c->getId());
-                    canciones.append(c);
-                }
-            }
+            };
+            addUniqueSongs(manejo->buscarCancionesPorArtista(texto));
+            addUniqueSongs(manejo->buscarCancionesPorTitulo(texto));
         }
         for (int i = 0; i < canciones.size(); ++i) {
             SongWidget *songWidget = new SongWidget(*canciones[i]);
